@@ -1,8 +1,10 @@
 ﻿__pycache__/
 *.py[cod]
 *.class
+*.exe
+*.zip
+*.log
 .env
 .venv
 env/
 venv/
-*.log
