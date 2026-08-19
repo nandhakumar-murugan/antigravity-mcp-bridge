@@ -1,9 +1,9 @@
-@echo off
-title Antigravity MCP Server Bridge
+﻿@echo off
+title Antigravity MCP Bridge (Server + Ngrok)
 cd /d "%~dp0"
 echo ===================================================
-echo   Starting Antigravity Local System MCP Bridge
+echo   Starting Antigravity MCP Server + Ngrok Tunnel
 echo ===================================================
 echo.
-python server.py
+python run_with_tunnel.py
 pause
