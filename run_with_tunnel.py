@@ -4,24 +4,24 @@ import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import RedirectResponse
-from starlette.routing import Route
+from starlette.routing import Route, Mount
 from pyngrok import ngrok, conf
 from server import mcp
 
 AUTHTOKEN = os.environ.get("NGROK_AUTHTOKEN", "36nOKqLSzMkccTe8rmIIsWeoF3n_6SQiDNeFQoB8AvVGLSDHT")
 
-# Build SSE App with redirects for / and /mcp
+# Extract SSE endpoint and Messages mount from MCPServer
 sse_app = mcp.sse_app()
+sse_route = [r for r in sse_app.routes if r.path == "/sse"][0]
+messages_mount = [r for r in sse_app.routes if r.path == "/messages"][0]
 
-async def redirect_to_sse(request):
-    return RedirectResponse(url="/sse", status_code=307)
-
+# Universal App: Serves MCP SSE on /, /mcp, /sse
 app = Starlette(
     routes=[
-        Route("/", redirect_to_sse),
-        Route("/mcp", redirect_to_sse),
-        *sse_app.routes,
+        Route("/", sse_route.endpoint),
+        Route("/mcp", sse_route.endpoint),
+        Route("/sse", sse_route.endpoint),
+        messages_mount,
     ],
     middleware=[
         Middleware(
@@ -38,15 +38,16 @@ def main():
     port = 8000
     host = "127.0.0.1"
     
-    print("[1/2] Connecting ngrok tunnel...")
+    print("[1/2] Connecting ngrok tunnel with rewrite header...")
     conf.get_default().auth_token = AUTHTOKEN
-    tunnel = ngrok.connect(port, "http")
+    ngrok.kill()
+    tunnel = ngrok.connect(port, "http", host_header="rewrite")
     public_url = tunnel.public_url.replace("http://", "https://")
     
     print("=" * 60)
-    print("NGROK TUNNEL IS LIVE!")
-    print(f"PRIMARY MCP SSE URL: {public_url}/sse")
-    print(f"ALT URL: {public_url}/mcp")
+    print("🎉 NGROK MCP TUNNEL IS LIVE!")
+    print(f"👉 PASTE THIS IN GEMINI SPARK: {public_url}/sse")
+    print(f"   (OR: {public_url}/mcp)")
     print("=" * 60)
     
     print(f"\n[2/2] Starting Unified MCP Server on {host}:{port}...")
