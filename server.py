@@ -1,4 +1,4 @@
-"""
+﻿"""
 Antigravity & Local System MCP Server Bridge
 Exposes system tools, file operations, terminal execution, and Antigravity Agent orchestration to Gemini Spark over MCP.
 """
@@ -166,5 +166,6 @@ def terminate_task(task_id: str) -> str:
 
 
 if __name__ == "__main__":
-    print("🚀 Starting Antigravity MCP Server (SSE transport)...")
+    print("ðŸš€ Starting Antigravity MCP Server (SSE transport)...")
     mcp.run(transport="sse")
+
