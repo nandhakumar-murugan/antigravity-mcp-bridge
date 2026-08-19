@@ -1,503 +1,473 @@
 ﻿<div align="center">
 
-<img src="https://img.shields.io/badge/⚡_ANTIGRAVITY-MCP_BRIDGE-6C63FF?style=for-the-badge&labelColor=1a1a2e" width="600"/>
+<!-- HEADER LOGOS -->
+<img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="60" alt="Gemini"/>
+&nbsp;&nbsp;&nbsp;
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/1280px-Google_Cloud_logo.svg.png" width="140" alt="Google Cloud"/>
+&nbsp;&nbsp;&nbsp;
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/115px-Python-logo-notext.svg.png" width="50" alt="Python"/>
 
-# Antigravity MCP Bridge
-### *The World's First Open-Source Bridge Connecting Cloud AI Orchestrators to Local Development Environments via the Model Context Protocol*
+# ⚡ Antigravity MCP Bridge
 
-[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12%20|%203.13-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![MCP](https://img.shields.io/badge/Protocol-Model_Context_Protocol-4285F4?style=flat-square&logo=google&logoColor=white)](https://modelcontextprotocol.io)
-[![Gemini Spark](https://img.shields.io/badge/Gemini_Spark-Connected-00C853?style=flat-square&logo=google&logoColor=white)](https://gemini.google.com)
-[![Antigravity](https://img.shields.io/badge/Google-Antigravity-FF6F00?style=flat-square&logo=google&logoColor=white)](https://antigravity.google)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Windows](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-0078D4?style=flat-square&logo=windows&logoColor=white)](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square)](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge)
+### *The Open-Source Bridge Connecting Google Cloud AI to Your Local Machine via the Model Context Protocol*
 
-**Bridges the Gap Between Cloud AI and Your Local Machine**
-
-[Architecture](#-system-architecture) • [All Tools Reference](#-complete-tools-reference--developer-api) • [Quickstart](#-quickstart) • [Google Ecosystem Integration](#-google-ecosystem-deep-integration) • [Developer Docs](#-developer-integration-guide) • [Benefits](#-who-benefits) • [Use Cases](#-real-world-use-cases) • [Security](#-security--safety-model)
+<!-- BADGES -->
+[![Model Context Protocol](https://img.shields.io/badge/Model%20Context%20Protocol-MCP%202.0-4285F4?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQxIDAtOC0zLjU5LTgtOHMzLjU5LTggOC04IDggMy41OSA4IDgtMy41OSA4LTggOHoiLz48L3N2Zz4=&logoColor=white)](https://modelcontextprotocol.io)
+[![Gemini Spark](https://img.shields.io/badge/Google%20Gemini-Spark%20Connected-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://gemini.google.com)
+[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Integrated-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![ngrok](https://img.shields.io/badge/Tunnel-ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=white)](https://ngrok.com)
+[![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/nandhakumar-murugan/antigravity-mcp-bridge?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/stargazers)
 
 ---
 
-> **Live Proof of Concept**: Using this bridge, a single prompt to Gemini Spark — *"Create a calculator with unit tests and run them"* — autonomously produced, tested, and committed working Python code to GitHub on a real local machine **in under 3 seconds**, with zero human intervention.
+> **Verified Proof of Concept**: A single Gemini Spark prompt — *"Create a calculator with unit tests"* — produced, ran, and committed working Python code to GitHub in under 3 seconds. Zero human copy-pasting.
+
+[Architecture](#-system-architecture) • [Tools API](#-complete-tools-reference) • [Quickstart](#-quickstart) • [Google Ecosystem](#-google-ecosystem-integration) • [Developer Docs](#-developer-integration-guide) • [Resources & Links](#-official-documentation--external-resources) • [Benefits](#-who-benefits)
 
 </div>
 
 ---
 
-## 🎯 The Problem Being Solved
+## 🧩 What Is This Project?
 
-| Traditional AI Workflow | With Antigravity MCP Bridge |
-|:---|:---|
-| AI generates code → You manually copy | AI directly writes files to your disk |
-| You open terminal, paste, debug | AI executes in your terminal, reads errors |
-| 15+ steps per feature cycle | Single natural language instruction |
-| AI has no awareness of your runtime | AI sees your real compiler output |
-| Local and Cloud are disconnected silos | Unified conversational interface |
-| Students confused by setup complexity | AI handles all environment configuration |
+**Antigravity MCP Bridge** breaks the barrier between Cloud AI and your local machine. It runs a local **Model Context Protocol (MCP)** server that exposes your entire operating system — terminal, files, compilers, and Git — to any MCP-compatible AI orchestrator over a secure HTTPS tunnel.
+
+Connect it to **Google Gemini Spark** and you get a fully autonomous AI Software Engineer that can plan, code, test, fix, and ship software directly on your disk.
 
 ---
 
 ## 🏗️ System Architecture
 
-### The "Brain + Hands" Paradigm
-
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│               🌐  GOOGLE CLOUD ECOSYSTEM (THE BRAIN)            │
-│  ┌──────────────────┐  ┌───────────────┐  ┌──────────────────┐ │
-│  │  Gemini Spark    │  │  Google Docs  │  │   Vertex AI      │ │
-│  │  (Orchestrator)  │  │  Drive/Gmail  │  │   Cloud Run      │ │
-│  └────────┬─────────┘  └───────────────┘  └──────────────────┘ │
-└───────────┼─────────────────────────────────────────────────────┘
-            │
-            │ Model Context Protocol (Streamable HTTP / SSE)
-            │ JSON-RPC 2.0 over HTTPS (ngrok / Cloudflare Tunnel)
-            │
-┌───────────▼─────────────────────────────────────────────────────┐
-│           ⚡  ANTIGRAVITY MCP BRIDGE SERVER (run_with_tunnel.py)│
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                MCP Server (MCPServer 2.0)                   ││
-│  │   7 Exposed Tools  |  CORS  |  Streamable HTTP  |  SSE     ││
-│  └──────────┬──────────────────────────────────────────────────┘│
-└─────────────┼───────────────────────────────────────────────────┘
-              │
-┌─────────────▼───────────────────────────────────────────────────┐
-│               💻  YOUR LOCAL MACHINE (THE HANDS)                │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │  File System │  │   Terminal   │  │  Antigravity Engine   │  │
-│  │  (All Files) │  │  (Any Shell) │  │  (Subagent Tasks)     │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │    Python    │  │   Node.js    │  │  Git / CI / Docker   │  │
-│  │    pip/venv  │  │   npm/yarn   │  │  (Full DevOps Chain) │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                🌐  GOOGLE CLOUD ECOSYSTEM                          │
+│                                                                    │
+│  ┌─────────────────┐  ┌──────────────────┐  ┌─────────────────┐  │
+│  │  Gemini Spark   │  │  Google Workspace │  │  Vertex AI /    │  │
+│  │  (Orchestrator) │  │  Docs/Drive/Gmail │  │  Cloud Run      │  │
+│  └────────┬────────┘  └──────────────────┘  └─────────────────┘  │
+└───────────┼────────────────────────────────────────────────────────┘
+            │  JSON-RPC 2.0 (Streamable HTTP / SSE)
+            │  HTTPS via ngrok / Cloudflare Tunnel
+┌───────────▼────────────────────────────────────────────────────────┐
+│          ⚡  ANTIGRAVITY MCP BRIDGE  (Your Machine)                │
+│                                                                    │
+│   /mcp  (Streamable HTTP)    /sse  (Server-Sent Events)           │
+│   CORS · Authentication · 7 Registered MCP Tools                  │
+│                                                                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
+│  │  File System │  │   Terminal   │  │  Antigravity Subagents   │ │
+│  │  Read/Write  │  │  Shell/CMD   │  │  (Autonomous Tasks)      │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────────┘ │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
+│  │   Python     │  │  Node.js/npm │  │   Git / Docker / CI      │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
-### Communication Protocol Deep Dive
+### Transport Protocol
 
-The bridge supports two official MCP transports:
-
-| Transport | Endpoint | Use Case | Headers Required |
-|:---|:---|:---|:---|
-| **Streamable HTTP** | `/mcp` | Google Gemini Spark, Claude Desktop | `Accept: application/json, text/event-stream` |
-| **Server-Sent Events (SSE)** | `/sse` | Legacy MCP clients, custom integrations | `Accept: text/event-stream` |
-| **SSE Messages** | `/messages` | Bidirectional message posting | `Content-Type: application/json` |
-
-All endpoints return **JSON-RPC 2.0** responses over a persistent `text/event-stream` connection with proper CORS headers.
+| Endpoint | Protocol | Best For |
+|:---|:---|:---|
+| `/mcp` | Streamable HTTP (MCP 2.0) | Google Gemini Spark, Vertex AI, all modern MCP clients |
+| `/sse` | Server-Sent Events (SSE) | Legacy MCP clients, custom integrations |
+| `/messages` | HTTP POST | Posting messages in SSE sessions |
 
 ---
 
-## 🧰 Complete Tools Reference & Developer API
+## 🧰 Complete Tools Reference
 
-### Tool 1: `run_system_command`
+### 🔧 Tool 1: `run_system_command`
+Execute any shell, PowerShell or Bash command. Captures exit code, stdout, stderr.
 
-Execute any shell or PowerShell command on the local machine with full stdout/stderr capture.
-
-**Parameters:**
-| Parameter | Type | Required | Description |
+| Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `command` | `string` | ✅ | The full shell command to execute |
-| `working_dir` | `string` | ❌ | Absolute path to working directory (defaults to server CWD) |
+| `command` | string | ✅ | Full shell command to execute |
+| `working_dir` | string | ❌ | Working directory path (defaults to CWD) |
 
-**Returns:** `string` — Exit code, stdout, and stderr formatted output.
-
-**Example JSON-RPC Call:**
 ```json
+// Example: Run Python unit tests
 {
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "run_system_command",
-    "arguments": {
-      "command": "python -m pytest tests/ -v --tb=short",
-      "working_dir": "C:/Users/dev/myproject"
-    }
+  "name": "run_system_command",
+  "arguments": {
+    "command": "python -m pytest tests/ -v",
+    "working_dir": "C:/Users/dev/myproject"
   }
 }
 ```
-
-**Example Response:**
-```
-[Exit Code: 0]
---- STDOUT ---
-tests/test_api.py::test_health PASSED
-tests/test_api.py::test_create_user PASSED
-2 passed in 0.34s
---- STDERR ---
-(empty)
-```
-
-**Practical Applications:**
-- Run Python, Node.js, Java, or Rust compilers
-- Execute `pip install`, `npm install`, `cargo build`
-- Run `git commit`, `git push`, `git diff`
-- Execute unit test runners (`pytest`, `jest`, `mocha`, `unittest`)
-- Run database migrations (`alembic upgrade head`)
-- Trigger Docker builds and container management
-- Execute custom build scripts and CI pipelines locally
+**Use for:** Running Python/Node/Java/Rust, pip install, npm install, git operations, test runners, Docker, CI pipelines.
 
 ---
 
-### Tool 2: `write_file`
+### 📝 Tool 2: `write_file`
+Create or overwrite any file on disk with AI-generated content. Auto-creates directories.
 
-Create or completely overwrite any file on the local filesystem with AI-generated content.
-
-**Parameters:**
-| Parameter | Type | Required | Description |
+| Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `file_path` | `string` | ✅ | Absolute or relative path to the file |
-| `content` | `string` | ✅ | Full string content to write to the file |
+| `file_path` | string | ✅ | Absolute or relative file path |
+| `content` | string | ✅ | Full content to write |
 
-**Returns:** `string` — Success message with the absolute path where the file was written.
-
-**Example JSON-RPC Call:**
 ```json
+// Example: Write a FastAPI route
 {
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "tools/call",
-  "params": {
-    "name": "write_file",
-    "arguments": {
-      "file_path": "src/api/routes.py",
-      "content": "from fastapi import APIRouter\nrouter = APIRouter()\n\n@router.get('/health')\ndef health_check():\n    return {'status': 'ok'}"
-    }
+  "name": "write_file",
+  "arguments": {
+    "file_path": "src/api/routes.py",
+    "content": "from fastapi import APIRouter\nrouter = APIRouter()\n\n@router.get('/health')\ndef health(): return {'status': 'ok'}"
   }
 }
 ```
-
-**Practical Applications:**
-- Write Python, JavaScript, TypeScript, Go, Rust, Java source code
-- Generate full project structures (`src/`, `tests/`, `docs/`, `configs/`)
-- Create configuration files (`package.json`, `pyproject.toml`, `Dockerfile`, `.env.example`)
-- Write GitHub Actions workflow files (`.github/workflows/*.yml`)
-- Generate Markdown documentation, README files, API specs
+**Use for:** Writing source code, configs, Dockerfiles, GitHub Actions YAML, Markdown docs, .env files.
 
 ---
 
-### Tool 3: `read_file`
+### 📖 Tool 3: `read_file`
+Read and return the full content of any local file.
 
-Read and return the full UTF-8 content of any local file.
-
-**Parameters:**
-| Parameter | Type | Required | Description |
+| Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `file_path` | `string` | ✅ | Absolute or relative path to the file to read |
+| `file_path` | string | ✅ | Path to the file |
 
-**Returns:** `string` — Full content of the file.
-
-**Example JSON-RPC Call:**
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 3,
-  "method": "tools/call",
-  "params": {
-    "name": "read_file",
-    "arguments": {
-      "file_path": "src/api/routes.py"
-    }
+  "name": "read_file",
+  "arguments": { "file_path": "src/main.py" }
+}
+```
+**Use for:** Inspecting code before refactoring, reading logs, auditing configs, reading datasets.
+
+---
+
+### 📂 Tool 4: `list_directory`
+Enumerate files and directories with type and size.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `directory_path` | string | ❌ | Directory to list (defaults to CWD) |
+
+```json
+{
+  "name": "list_directory",
+  "arguments": { "directory_path": "C:/Users/dev/myproject" }
+}
+```
+**Use for:** Discovering project structure, verifying files were created, auditing repos.
+
+---
+
+### 🤖 Tool 5: `run_agent_task`
+Spawn an autonomous long-running **Antigravity AI subagent** for complex multi-step goals. Returns instantly with a `task_id`.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `prompt` | string | ✅ | High-level natural language objective |
+| `workspace_dir` | string | ❌ | Directory for the agent to operate in |
+
+```json
+{
+  "name": "run_agent_task",
+  "arguments": {
+    "prompt": "Refactor all Python files to use async/await. Run tests after each file.",
+    "workspace_dir": "C:/Users/dev/myproject"
   }
 }
 ```
-
-**Practical Applications:**
-- Analyze existing code before refactoring
-- Read error log files to diagnose production issues
-- Inspect configuration files before modifying
-- Validate the content of files just written
-- Read CSV/JSON datasets for analysis
+**Use for:** Large-scale refactoring, full feature development, autonomous TDD, security audits.
 
 ---
 
-### Tool 4: `list_directory`
+### 📊 Tool 6: `get_agent_status`
+Poll the live progress, output, and errors of a background subagent task.
 
-Enumerate all files and directories at a given path with size and type information.
-
-**Parameters:**
-| Parameter | Type | Required | Description |
+| Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `directory_path` | `string` | ❌ | Path to inspect (defaults to server CWD) |
+| `task_id` | string | ✅ | Task ID from `run_agent_task` |
 
-**Returns:** `string` — Human-readable directory listing with `[DIR]`/`[FILE]` labels and byte sizes.
-
-**Example JSON-RPC Call:**
 ```json
 {
-  "jsonrpc": "2.0",
-  "id": 4,
-  "method": "tools/call",
-  "params": {
-    "name": "list_directory",
-    "arguments": {
-      "directory_path": "C:/Users/dev/myproject"
-    }
-  }
+  "name": "get_agent_status",
+  "arguments": { "task_id": "a1b2c3d4" }
 }
+// Returns: { "status": "completed", "output": "...", "error": null }
 ```
-
-**Practical Applications:**
-- Discover project structure before starting work
-- Verify files were created successfully
-- Audit codebases for outdated or orphaned files
-- Navigate multi-module repository layouts
 
 ---
 
-### Tool 5: `run_agent_task`
+### 🛑 Tool 7: `terminate_task`
+Safely cancel any running background subagent task.
 
-Launch an autonomous long-running **Antigravity AI subagent** in the background to accomplish a complex multi-step coding goal. Returns immediately with a `task_id` for polling.
-
-**Parameters:**
-| Parameter | Type | Required | Description |
+| Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `prompt` | `string` | ✅ | High-level natural language objective for the subagent |
-| `workspace_dir` | `string` | ❌ | Directory where the subagent should operate |
-
-**Returns:** `string` — Confirmation message with the assigned `task_id`.
-
-**Example JSON-RPC Call:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 5,
-  "method": "tools/call",
-  "params": {
-    "name": "run_agent_task",
-    "arguments": {
-      "prompt": "Refactor all Python files in src/ to use async/await patterns. Run the test suite after each file to verify no regressions.",
-      "workspace_dir": "C:/Users/dev/myproject"
-    }
-  }
-}
-```
-
-**Practical Applications:**
-- Large-scale codebase refactoring (sync to async, Python 2 to 3)
-- Autonomous bug hunting and test-driven repair
-- Full feature implementation from specification to tested code
-- Repository-wide documentation generation
-- Automated security audit and remediation
+| `task_id` | string | ✅ | Task ID to cancel |
 
 ---
 
-### Tool 6: `get_agent_status`
+## 🔗 Google Ecosystem Integration
 
-Poll the current status, output, and any errors from a background subagent task.
+<table>
+<tr>
+<td width="50%">
 
-**Parameters:**
-| Parameter | Type | Required | Description |
-|:---|:---|:---:|:---|
-| `task_id` | `string` | ✅ | The task ID returned by `run_agent_task` |
+### <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="20"/> Gemini Spark
+**Connect your bridge to Gemini via Custom Connected Apps.**
 
-**Returns:** `object` — JSON with `status` (`running`/`completed`/`failed`/`cancelled`), `output`, and `error`.
+- 📖 [Gemini Home](https://gemini.google.com)
+- 📖 [Gemini API Docs](https://ai.google.dev/gemini-api/docs)
+- 📖 [Gemini for Google Workspace](https://workspace.google.com/intl/en/products/gemini/)
 
-**Example JSON-RPC Call:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 6,
-  "method": "tools/call",
-  "params": {
-    "name": "get_agent_status",
-    "arguments": {
-      "task_id": "a1b2c3d4"
-    }
-  }
-}
-```
+</td>
+<td width="50%">
 
-**Example Response:**
-```json
-{
-  "task_id": "a1b2c3d4",
-  "status": "completed",
-  "output": "Refactored 12 files. All 47 tests passing. Exit code: 0.",
-  "error": null
-}
-```
+### <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/100px-Google_Cloud_logo.svg.png" width="80"/> Google Cloud
+**Deploy the bridge to Cloud or integrate with Cloud AI.**
+
+- 📖 [Google Cloud Console](https://console.cloud.google.com)
+- 📖 [Cloud Run Docs](https://cloud.google.com/run/docs)
+- 📖 [Cloud Build Docs](https://cloud.google.com/build/docs)
+
+</td>
+</tr>
+<tr>
+<td>
+
+### <img src="https://www.gstatic.com/images/branding/product/1x/vertex_ai_64dp.png" width="22"/> Vertex AI
+**Enterprise-grade AI orchestration with local execution.**
+
+- 📖 [Vertex AI Docs](https://cloud.google.com/vertex-ai/docs)
+- 📖 [Vertex AI Workbench](https://cloud.google.com/vertex-ai/docs/workbench/introduction)
+- 📖 [Generative AI on Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/overview)
+
+</td>
+<td>
+
+### <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" width="22"/> Google Workspace
+**Use Docs, Drive, Gmail as AI context sources.**
+
+- 📖 [Google Workspace APIs](https://developers.google.com/workspace)
+- 📖 [Google Drive API](https://developers.google.com/drive)
+- 📖 [Google Docs API](https://developers.google.com/docs/api)
+
+</td>
+</tr>
+</table>
 
 ---
 
-### Tool 7: `terminate_task`
+## 📚 Official Documentation & External Resources
 
-Safely cancel a running background subagent task.
+### 🔵 Model Context Protocol (MCP)
 
-**Parameters:**
-| Parameter | Type | Required | Description |
-|:---|:---|:---:|:---|
-| `task_id` | `string` | ✅ | The task ID to cancel |
-
-**Returns:** `string` — Confirmation of cancellation.
-
----
-
-## 🔗 Google Ecosystem Deep Integration
-
-This bridge is specifically architected to synergize with the full Google development stack:
-
-### Gemini Spark Integration
-```
-User Prompt in Gemini Spark Chat
-    ↓
-Gemini Spark reasons about which local tools to call
-    ↓
-MCP JSON-RPC POST to /mcp endpoint (via ngrok HTTPS)
-    ↓
-Antigravity Bridge executes on local OS
-    ↓
-Result streamed back via text/event-stream
-    ↓
-Gemini Spark presents result in conversation
-```
-
-### Google Cloud & Vertex AI Integration
-- **Google Cloud Run**: Deploy the bridge server as a containerized microservice in secure Google Cloud environments
-- **Vertex AI Workbench**: Attach as a local code execution kernel for notebook-based AI workflows
-- **Google Cloud Build**: Trigger local pre-commit validation before pushing to Cloud Source Repositories
-
-### Google Workspace Integration
-| Workspace App | Integration Potential |
+| Resource | Link |
 |:---|:---|
-| **Google Docs** | Gemini reads project specs from Docs → Bridge writes code locally |
-| **Google Drive** | Gemini downloads datasets/assets from Drive → Bridge processes them locally |
-| **Gmail** | Gemini reads issue reports from Gmail → Bridge creates bugfix branches autonomously |
-| **Google Sheets** | Gemini exports structured data → Bridge runs local analysis and charts |
+| 🏠 MCP Official Website | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
+| 📖 MCP Introduction | [modelcontextprotocol.io/introduction](https://modelcontextprotocol.io/introduction) |
+| 📖 MCP Quickstart Guide | [modelcontextprotocol.io/quickstart](https://modelcontextprotocol.io/quickstart) |
+| 📖 MCP Specification | [spec.modelcontextprotocol.io](https://spec.modelcontextprotocol.io) |
+| 🐍 Python MCP SDK (Official) | [github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk) |
+| 📦 MCP on PyPI | [pypi.org/project/mcp](https://pypi.org/project/mcp/) |
+| 🐙 MCP GitHub Organization | [github.com/modelcontextprotocol](https://github.com/modelcontextprotocol) |
+| 📖 MCP Transports Reference | [modelcontextprotocol.io/docs/concepts/transports](https://modelcontextprotocol.io/docs/concepts/transports) |
+| 📖 MCP Tools Reference | [modelcontextprotocol.io/docs/concepts/tools](https://modelcontextprotocol.io/docs/concepts/tools) |
+
+---
+
+### 🟣 Google Antigravity (AGY)
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Antigravity Home | [antigravity.google](https://antigravity.google) |
+| 📖 Antigravity Docs | [antigravity.google/docs](https://antigravity.google/docs) |
+| 📖 MCP Integration Guide | [antigravity.google/docs/mcp](https://antigravity.google/docs/mcp) |
+| 📖 Skills System | [antigravity.google/docs/skills](https://antigravity.google/docs/skills) |
+| 📖 Python SDK | [antigravity.google/docs/sdk](https://antigravity.google/docs/sdk) |
+| 📖 Hooks & Plugins | [antigravity.google/docs/hooks](https://antigravity.google/docs/hooks) |
+| 📖 Agent Permissions | [antigravity.google/docs/permissions](https://antigravity.google/docs/permissions) |
+| 📖 Changelog | [antigravity.google/changelog](https://antigravity.google/changelog) |
+
+---
+
+### 🔵 Google Gemini & AI APIs
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Google Gemini App | [gemini.google.com](https://gemini.google.com) |
+| 📖 Gemini API Documentation | [ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs) |
+| 📖 Gemini API Quickstart | [ai.google.dev/gemini-api/docs/quickstart](https://ai.google.dev/gemini-api/docs/quickstart) |
+| 📖 Gemini for Google Workspace | [workspace.google.com/intl/en/products/gemini](https://workspace.google.com/intl/en/products/gemini/) |
+| 📖 Google AI Studio | [aistudio.google.com](https://aistudio.google.com) |
+| 📖 Connected Apps (MCP) Help | [support.google.com/gemini?p=lm_custom_mcp_trust](https://support.google.com/gemini?p=lm_custom_mcp_trust) |
+| 🐙 Google Generative AI GitHub | [github.com/google-gemini](https://github.com/google-gemini) |
+
+---
+
+### ☁️ Google Cloud Platform
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Google Cloud Console | [console.cloud.google.com](https://console.cloud.google.com) |
+| 📖 Vertex AI Documentation | [cloud.google.com/vertex-ai/docs](https://cloud.google.com/vertex-ai/docs) |
+| 📖 Cloud Run Documentation | [cloud.google.com/run/docs](https://cloud.google.com/run/docs) |
+| 📖 Cloud Build Documentation | [cloud.google.com/build/docs](https://cloud.google.com/build/docs) |
+| 📖 Google Cloud APIs Explorer | [cloud.google.com/apis](https://cloud.google.com/apis) |
+| 📖 AI & Machine Learning Products | [cloud.google.com/products/ai](https://cloud.google.com/products/ai) |
+
+---
+
+### 🐍 Python & Core Libraries
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Python Official Website | [python.org](https://python.org) |
+| 📖 Python Docs | [docs.python.org/3](https://docs.python.org/3/) |
+| 📦 PyPI Package Index | [pypi.org](https://pypi.org) |
+| 📖 pip Documentation | [pip.pypa.io/en/stable](https://pip.pypa.io/en/stable/) |
+| 📖 asyncio Documentation | [docs.python.org/3/library/asyncio.html](https://docs.python.org/3/library/asyncio.html) |
+| 📖 subprocess Documentation | [docs.python.org/3/library/subprocess.html](https://docs.python.org/3/library/subprocess.html) |
+
+---
+
+### 🌐 Web & ASGI Framework
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Uvicorn (ASGI Server) | [uvicorn.org](https://www.uvicorn.org/) |
+| 📖 Uvicorn Docs | [uvicorn.org/settings](https://www.uvicorn.org/settings/) |
+| 🏠 Starlette Framework | [starlette.io](https://www.starlette.io/) |
+| 📖 Starlette Docs | [starlette.io/applications](https://www.starlette.io/applications/) |
+| 📖 Starlette Routing | [starlette.io/routing](https://www.starlette.io/routing/) |
+| 📖 CORS Middleware | [starlette.io/middleware/#corsmiddleware](https://www.starlette.io/middleware/#corsmiddleware) |
+| 🏠 FastAPI | [fastapi.tiangolo.com](https://fastapi.tiangolo.com) |
+| 📖 FastAPI Docs | [fastapi.tiangolo.com/tutorial](https://fastapi.tiangolo.com/tutorial/) |
+
+---
+
+### 🔒 Tunneling & Secure Exposure
+
+| Resource | Link |
+|:---|:---|
+| 🏠 ngrok Official Website | [ngrok.com](https://ngrok.com) |
+| 📖 ngrok Documentation | [ngrok.com/docs](https://ngrok.com/docs) |
+| 📖 ngrok HTTP Tunnels | [ngrok.com/docs/http](https://ngrok.com/docs/http/) |
+| 📦 pyngrok (Python SDK) | [pypi.org/project/pyngrok](https://pypi.org/project/pyngrok/) |
+| 📖 pyngrok Docs | [pyngrok.readthedocs.io](https://pyngrok.readthedocs.io/en/latest/) |
+| 🏠 Cloudflare Tunnel | [cloudflare.com/products/tunnel](https://www.cloudflare.com/products/tunnel/) |
+| 📖 Cloudflare Tunnel Docs | [developers.cloudflare.com/cloudflare-one/connections/connect-networks](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) |
+
+---
+
+### 📡 JSON-RPC & SSE Specifications
+
+| Resource | Link |
+|:---|:---|
+| 📖 JSON-RPC 2.0 Specification | [jsonrpc.org/specification](https://www.jsonrpc.org/specification) |
+| 📖 Server-Sent Events (SSE) — MDN | [developer.mozilla.org/en-US/docs/Web/API/Server-sent_events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) |
+| 📖 HTTP Status Codes — MDN | [developer.mozilla.org/en-US/docs/Web/HTTP/Status](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) |
+
+---
+
+### 🔧 Development Tools
+
+| Resource | Link |
+|:---|:---|
+| 🏠 Git | [git-scm.com](https://git-scm.com) |
+| 📖 Git Documentation | [git-scm.com/doc](https://git-scm.com/doc) |
+| 🏠 GitHub | [github.com](https://github.com) |
+| 📖 GitHub CLI (gh) | [cli.github.com](https://cli.github.com) |
+| 🏠 Python IDLE | [docs.python.org/3/library/idle.html](https://docs.python.org/3/library/idle.html) |
+| 📖 pytest Testing Framework | [docs.pytest.org](https://docs.pytest.org) |
+| 📖 unittest (Built-in) | [docs.python.org/3/library/unittest.html](https://docs.python.org/3/library/unittest.html) |
 
 ---
 
 ## 🚀 Quickstart
 
 ### Prerequisites
-- **Python 3.10+**: [Download](https://python.org/downloads)
-- **ngrok Account (Free)**: [Signup](https://dashboard.ngrok.com/signup)
-- **Git**: [Download](https://git-scm.com)
+[![Python](https://img.shields.io/badge/Python%203.10%2B-Download-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![ngrok](https://img.shields.io/badge/ngrok-Free%20Signup-1F1E37?style=flat-square&logo=ngrok&logoColor=white)](https://dashboard.ngrok.com/signup)
+[![Git](https://img.shields.io/badge/Git-Download-F05032?style=flat-square&logo=git&logoColor=white)](https://git-scm.com/downloads)
 
-### Step 1: Clone & Install
+### Step 1 — Clone & Install
 ```bash
 git clone https://github.com/nandhakumar-murugan/antigravity-mcp-bridge.git
 cd antigravity-mcp-bridge
 pip install -r requirements.txt
 ```
 
-### Step 2: Configure Your ngrok Token
-Get your free token from [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
+### Step 2 — Add Your ngrok Token
+Get your token at [dashboard.ngrok.com/get-started/your-authtoken](https://dashboard.ngrok.com/get-started/your-authtoken)
 
-Open `run_with_tunnel.py` and replace the token:
+Edit `run_with_tunnel.py`:
 ```python
 AUTHTOKEN = "your_ngrok_authtoken_here"
 ```
 
-### Step 3: Launch (One Command)
+### Step 3 — Launch
 ```bash
-# Windows:
+# Windows (Double-click or run):
 start_server.bat
 
 # macOS / Linux:
 python run_with_tunnel.py
 ```
 
-Your terminal will display:
+Output:
 ```
 [INFO] NGROK MCP TUNNEL IS LIVE!
 [LINK] PASTE THIS IN GEMINI SPARK: https://xxxx.ngrok-free.dev/mcp
 ```
 
-### Step 4: Connect to Gemini Spark
-1. Open [Gemini](https://gemini.google.com) → Settings → **Custom Connected Apps**
-2. Paste: `https://xxxx.ngrok-free.dev/mcp`
-3. Accept permissions and click **Next**
-4. All 7 tools will be discovered and activated automatically
-5. Mention `@Antigravity System Bridge` in any chat!
+### Step 4 — Connect to Gemini Spark
+1. Open [gemini.google.com](https://gemini.google.com)
+2. Go to **Settings → Custom Connected Apps**
+3. Paste: `https://xxxx.ngrok-free.dev/mcp`
+4. Accept permissions → Click **Save**
+5. Type `@Antigravity System Bridge` in any chat to activate!
 
 ---
 
 ## 💻 Developer Integration Guide
 
-### Connecting Any MCP Client
+### Python (Official MCP SDK)
 ```python
 import asyncio
 from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
-async def call_bridge():
-    SERVER_URL = "https://your-ngrok-url.ngrok-free.dev/mcp"
-    
-    async with streamable_http_client(SERVER_URL) as (read, write):
+async def main():
+    url = "https://xxxx.ngrok-free.dev/mcp"
+    async with streamable_http_client(url) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
-            
-            # List all available tools
             tools = await session.list_tools()
-            print(f"Available tools: {[t.name for t in tools.tools]}")
-            
-            # Execute a shell command
+            print([t.name for t in tools.tools])
+
+            # Run a command
             result = await session.call_tool("run_system_command", {
                 "command": "python --version"
             })
             print(result.content[0].text)
-            
-            # Write a file
-            await session.call_tool("write_file", {
-                "file_path": "hello.py",
-                "content": "print('Hello from MCP!')"
-            })
-            
-            # Run it
-            result = await session.call_tool("run_system_command", {
-                "command": "python hello.py"
-            })
-            print(result.content[0].text)
 
-asyncio.run(call_bridge())
+asyncio.run(main())
 ```
 
-### Connecting via raw HTTP (Any Language)
+### cURL (Any Language)
 ```bash
-# Initialize Session
-curl -X POST https://your-server.ngrok-free.dev/mcp \
+curl -X POST https://xxxx.ngrok-free.dev/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "initialize",
-    "params": {
-      "protocolVersion": "2024-11-05",
-      "capabilities": {},
-      "clientInfo": {"name": "my-app", "version": "1.0"}
-    }
-  }'
-
-# Call a Tool (with mcp-session-id from initialize response headers)
-curl -X POST https://your-server.ngrok-free.dev/mcp \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -H "mcp-session-id: YOUR_SESSION_ID" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 2,
-    "method": "tools/call",
-    "params": {
-      "name": "run_system_command",
-      "arguments": {"command": "echo Hello World!"}
-    }
-  }'
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"my-app","version":"1.0"}}}'
 ```
 
-### Claude Desktop Integration (`claude_desktop_config.json`)
+### Claude Desktop Config
 ```json
 {
   "mcpServers": {
     "antigravity-bridge": {
       "command": "python",
       "args": ["run_with_tunnel.py"],
-      "env": {
-        "NGROK_AUTHTOKEN": "your_token_here"
-      }
+      "env": { "NGROK_AUTHTOKEN": "your_token" }
     }
   }
 }
@@ -507,77 +477,20 @@ curl -X POST https://your-server.ngrok-free.dev/mcp \
 
 ## 👥 Who Benefits
 
-### 🎓 Students & Beginners
-- **No more "Tutorial Hell"**: Watch real software being built and run on your own computer
-- **Zero Setup Anxiety**: AI handles `pip install`, virtual environments, and PATH configuration
-- **Live Debugging**: See how runtime errors are diagnosed and fixed in real time
-- **Learn by Watching**: Every file created and command run is visible and educational
+### 🎓 Students
+- See real code written and run on your disk — not in fake sandboxes
+- AI handles `pip install`, virtual environments, and PATH setup for you
+- Learn debugging by watching the AI fix real terminal errors live
 
-### 💻 Professional Engineers
-- **10x Productivity**: Delegate boilerplate, test writing, and refactoring completely
-- **True Autonomous TDD**: AI writes code, runs tests, heals failures, repeats until 100% green
-- **Context-Free Task Delegation**: Focus on architecture while AI handles implementation details
-- **CI/CD Automation**: Trigger full local validation pipelines conversationally
+### 💻 Engineers
+- Full autonomous TDD: AI writes code → runs tests → fixes failures → repeats
+- Delegate entire features: *"Build a REST API with auth"* → done in minutes
+- No more copy-pasting between chat and editor
 
-### 🔬 Researchers & Data Scientists
-- **Secure Local Compute**: Process private datasets locally without uploading to third parties
-- **Automated Experiments**: Run hyperparameter searches and benchmark sweeps autonomously
-- **GPU Utilization**: Leverage local NVIDIA GPUs through conversational commands
-- **Reproducible Research**: AI generates and executes reproducible experiment scripts
-
-### 🏢 Organizations & Teams
-- **Standardized Dev Environments**: One bridge config deployed across all developer machines
-- **Reduced Onboarding Time**: New developers can start contributing within minutes via AI guidance
-- **Documentation Automation**: AI continuously updates technical docs as code evolves
-
----
-
-## 🌍 Real-World Use Cases
-
-| Use Case | Tools Used | Time Savings |
-|:---|:---|:---|
-| Generate full CRUD REST API with tests | `write_file` + `run_system_command` | ~4 hours → 2 minutes |
-| Migrate 50 files from Python 2 to 3 | `run_agent_task` + `get_agent_status` | ~2 days → 30 minutes |
-| Debug a production log error | `read_file` + `run_system_command` | ~45 min → 2 minutes |
-| Set up a new project with CI/CD | `write_file` + `run_system_command` | ~3 hours → 5 minutes |
-| Generate unit tests for entire module | `read_file` + `write_file` + `run_system_command` | ~1 day → 10 minutes |
-| Deploy to Google Cloud Run | `run_system_command` (gcloud) | ~1 hour → 3 minutes |
-
----
-
-## 📉 What This Eliminates
-
-```
-BEFORE:
-Prompt AI → Copy Code → Open IDE → Create File → Paste Code → Fix Indentation
-→ Open Terminal → Run → Error! → Copy Error → Back to AI → Fix → Repeat
-                                           (15-30 minutes per iteration)
-
-AFTER:
-Natural Language → Autonomous Execution → Verified Result
-                        (10-30 seconds)
-```
-
-**Bottlenecks Eliminated:**
-- Manual copy-paste between AI chat and code editor
-- Environment setup confusion (PATH, venvs, dependencies)
-- Context-switching between browser, IDE, and terminal
-- Hallucinated import errors (AI tests against your real runtime)
-- Manual git operations and commit workflows
-- Time wasted explaining your file structure to the AI on every message
-
----
-
-## 🔒 Security & Safety Model
-
-| Layer | Protection Mechanism |
-|:---|:---|
-| **Transport Security** | All traffic encrypted via ngrok HTTPS (TLS 1.3) |
-| **Authentication** | ngrok Authtoken prevents unauthorized tunnel access |
-| **Workspace Isolation** | Tools respect `working_dir` boundaries |
-| **Human Oversight** | All actions visible in terminal; user can kill any task instantly |
-| **Task Control** | `terminate_task` immediately halts any running subagent |
-| **Command Timeout** | All shell commands have a 180-second automatic timeout |
+### 🔬 Researchers
+- Run local Python pipelines without uploading sensitive data to the cloud
+- Automate experiment scripts, benchmarks, and data analysis conversationally
+- Use local GPU compute via terminal commands
 
 ---
 
@@ -585,69 +498,61 @@ Natural Language → Autonomous Execution → Verified Result
 
 ```
 antigravity-mcp-bridge/
-├── server.py               # Core MCP Server — all 7 tool definitions
-├── run_with_tunnel.py      # One-click server + ngrok tunnel launcher
-├── start_server.bat        # Windows double-click launcher
-├── test_client.py          # Automated connection verification script
-├── requirements.txt        # Python package dependencies
-├── .gitignore              # Git exclusions
-├── LICENSE                 # MIT License
-└── README.md               # This documentation
+├── server.py               # Core MCP server with all 7 tool definitions
+├── run_with_tunnel.py      # One-click launcher (server + ngrok tunnel)
+├── start_server.bat        # Windows double-click starter
+├── test_client.py          # MCP connection verification script
+├── calculator.py           # Example: AI-generated code via Gemini Spark
+├── test_calculator.py      # Example: AI-generated tests (all 6 passed)
+├── requirements.txt        # Python dependencies
+├── .gitignore
+├── LICENSE                 # MIT
+└── README.md
 ```
 
 ---
 
-## 📦 Dependencies
+## 📦 requirements.txt
 
 ```
-mcp>=2.0.0          # Official Model Context Protocol SDK (Python)
-uvicorn             # ASGI server (Starlette/MCP runtime)
-fastapi             # Web framework (CORS and routing)
-pyngrok             # Python wrapper for ngrok tunnel management
-python-dotenv       # Environment variable management
+mcp>=2.0.0
+uvicorn
+fastapi
+pyngrok
+python-dotenv
 ```
 
 ---
 
-## 🛣️ Roadmap
+## 🛡️ Security
 
-- [x] Streamable HTTP (`/mcp`) and SSE (`/sse`) dual transport support
-- [x] Google Gemini Spark integration (verified & live)
-- [x] 7 core system execution tools
-- [x] Background autonomous subagent orchestration
-- [ ] OAuth 2.0 bearer token authentication layer
-- [ ] Docker container deployment (`Dockerfile` + `docker-compose.yml`)
-- [ ] Google Cloud Run one-click deployment button
-- [ ] WebSocket-based real-time streaming tool output
-- [ ] Multi-workspace sandboxing (run multiple projects simultaneously)
-- [ ] Plugin system for extending with custom domain-specific tools
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes with descriptive messages
-4. Open a Pull Request with a summary of the changes
+- All traffic is **TLS-encrypted** via ngrok HTTPS
+- ngrok **Authtoken** prevents unauthorized access
+- 180-second **command timeout** on all terminal executions
+- `terminate_task` **immediately halts** any running subagent
+- All operations are **fully visible** in your local terminal
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
 
-### The Future of Development is Conversational, Autonomous, and Local.
+### Built with the Google Ecosystem. Powered by Open Standards.
 
-**Built with ❤️ for Students, Engineers, and Researchers worldwide.**
+[![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?style=flat-square&logo=google&logoColor=white)](https://gemini.google.com)
+[![Cloud](https://img.shields.io/badge/Google-Cloud-4285F4?style=flat-square&logo=googlecloud&logoColor=white)](https://cloud.google.com)
+[![MCP](https://img.shields.io/badge/Model%20Context-Protocol-blue?style=flat-square)](https://modelcontextprotocol.io)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![ngrok](https://img.shields.io/badge/ngrok-1F1E37?style=flat-square&logo=ngrok&logoColor=white)](https://ngrok.com)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge)
 
-⭐ **Star this repository** if it helped you | 🍴 **Fork it** to customize for your workflow
+**⭐ Star this repo** if it helped you! | **🍴 Fork** to customize for your team
 
-[GitHub](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge) • [Report Issues](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/issues) • [Discussions](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/discussions)
+[🐛 Report Issues](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/issues) · [💬 Discussions](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/discussions) · [🤝 Contribute](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/pulls)
 
 </div>
