@@ -1,0 +1,4 @@
+﻿mcp>=2.0.0
+uvicorn
+fastapi
+python-dotenv
