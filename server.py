@@ -301,37 +301,103 @@ def get_session_notes(tag_filter: Optional[str] = None) -> str:
 BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".gemini", "antigravity", "brain")
 
 
+def _extract_conversation_title(conv_path: str) -> str:
+    """Extract conversation title from transcript CONVERSATION_HISTORY step or first USER_INPUT."""
+    import re
+    transcript = os.path.join(conv_path, ".system_generated", "logs", "transcript.jsonl")
+    if not os.path.exists(transcript):
+        return ""
+    try:
+        with open(transcript, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+
+        # 1. Look for CONVERSATION_HISTORY step which contains "Conversation <id>: <Title>"
+        for line in lines:
+            try:
+                data = json.loads(line)
+                if data.get("type") == "CONVERSATION_HISTORY":
+                    content = data.get("content", "")
+                    match = re.search(r"##\s*Conversation\s+[\w-]+:\s*(.+)", content)
+                    if match:
+                        return match.group(1).strip()
+            except Exception:
+                continue
+
+        # 2. Fallback: use first USER_INPUT content as title
+        for line in lines:
+            try:
+                data = json.loads(line)
+                if data.get("type") == "USER_INPUT":
+                    content = data.get("content", "").strip()
+                    if content:
+                        return content[:60] + ("..." if len(content) > 60 else "")
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return ""
+
+
+def _count_conversation_stats(conv_path: str) -> dict:
+    """Count messages, artifacts, and tasks in a conversation."""
+    transcript = os.path.join(conv_path, ".system_generated", "logs", "transcript.jsonl")
+    stats = {"messages": 0, "user_messages": 0, "tasks": 0, "artifacts": 0}
+    if not os.path.exists(transcript):
+        return stats
+    try:
+        with open(transcript, "r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                try:
+                    data = json.loads(line)
+                    t = data.get("type", "")
+                    if t == "USER_INPUT":
+                        stats["user_messages"] += 1
+                    stats["messages"] += 1
+                except Exception:
+                    pass
+        # Count tasks
+        tasks_dir = os.path.join(conv_path, ".system_generated", "tasks")
+        if os.path.exists(tasks_dir):
+            stats["tasks"] = len([f for f in os.listdir(tasks_dir) if f.endswith(".log")])
+        # Count artifacts (non-.system_generated files)
+        for root, dirs, files in os.walk(conv_path):
+            dirs[:] = [d for d in dirs if d != ".system_generated"]
+            stats["artifacts"] += len([f for f in files if not f.endswith(".metadata.json")])
+    except Exception:
+        pass
+    return stats
+
+
 @mcp.tool()
 def list_antigravity_conversations() -> str:
     """
-    Lists all Antigravity conversation IDs stored in the local brain directory,
-    with their last modified time. Use the conversation_id with inject_message
-    to send a message into any conversation.
+    Lists ALL Antigravity projects/conversations with their real names (titles),
+    conversation IDs, last active time, message count, artifact count, and task count.
+    Exactly what you see in the Antigravity sidebar — use conversation_id with inject_message.
     """
     if not os.path.exists(BRAIN_DIR):
         return "[Error] Antigravity brain directory not found."
 
     results = []
     for entry in sorted(os.scandir(BRAIN_DIR), key=lambda e: e.stat().st_mtime, reverse=True):
-        if entry.is_dir() and len(entry.name) == 36 and entry.name.count("-") == 4:
-            # Try to read latest transcript line for context
-            transcript = os.path.join(entry.path, ".system_generated", "logs", "transcript.jsonl")
-            preview = ""
-            if os.path.exists(transcript):
-                try:
-                    with open(transcript, "r", encoding="utf-8", errors="replace") as f:
-                        lines = f.readlines()
-                        for line in reversed(lines):
-                            data = json.loads(line)
-                            if data.get("type") == "USER_INPUT":
-                                preview = data.get("content", "")[:80]
-                                break
-                except Exception:
-                    pass
-            mtime = datetime.fromtimestamp(entry.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-            results.append(f"[{mtime}] {entry.name}\n  Last user msg: {preview or '(unknown)'}")
+        if not (entry.is_dir() and len(entry.name) == 36 and entry.name.count("-") == 4):
+            continue
 
-    return "=== Antigravity Conversations ===\n" + "\n\n".join(results) if results else "[Info] No conversations found."
+        title = _extract_conversation_title(entry.path) or "(Untitled)"
+        stats = _count_conversation_stats(entry.path)
+        mtime = datetime.fromtimestamp(entry.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+
+        results.append(
+            f"📁 \"{title}\"\n"
+            f"   ID       : {entry.name}\n"
+            f"   Last Active: {mtime}\n"
+            f"   Messages : {stats['user_messages']} user / {stats['messages']} total\n"
+            f"   Tasks    : {stats['tasks']}  |  Artifacts: {stats['artifacts']}"
+        )
+
+    if not results:
+        return "[Info] No conversations found."
+    return "=== Antigravity Conversations & Projects ===\n\n" + "\n\n".join(results)
 
 
 @mcp.tool()
