@@ -296,6 +296,117 @@ def get_session_notes(tag_filter: Optional[str] = None) -> str:
     return "\n".join(lines)
 
 
+# ─── Antigravity Conversation Injection ──────────────────────────────────────
+
+BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".gemini", "antigravity", "brain")
+
+
+@mcp.tool()
+def list_antigravity_conversations() -> str:
+    """
+    Lists all Antigravity conversation IDs stored in the local brain directory,
+    with their last modified time. Use the conversation_id with inject_message
+    to send a message into any conversation.
+    """
+    if not os.path.exists(BRAIN_DIR):
+        return "[Error] Antigravity brain directory not found."
+
+    results = []
+    for entry in sorted(os.scandir(BRAIN_DIR), key=lambda e: e.stat().st_mtime, reverse=True):
+        if entry.is_dir() and len(entry.name) == 36 and entry.name.count("-") == 4:
+            # Try to read latest transcript line for context
+            transcript = os.path.join(entry.path, ".system_generated", "logs", "transcript.jsonl")
+            preview = ""
+            if os.path.exists(transcript):
+                try:
+                    with open(transcript, "r", encoding="utf-8", errors="replace") as f:
+                        lines = f.readlines()
+                        for line in reversed(lines):
+                            data = json.loads(line)
+                            if data.get("type") == "USER_INPUT":
+                                preview = data.get("content", "")[:80]
+                                break
+                except Exception:
+                    pass
+            mtime = datetime.fromtimestamp(entry.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+            results.append(f"[{mtime}] {entry.name}\n  Last user msg: {preview or '(unknown)'}")
+
+    return "=== Antigravity Conversations ===\n" + "\n\n".join(results) if results else "[Info] No conversations found."
+
+
+@mcp.tool()
+def inject_message(
+    conversation_id: str,
+    message: str,
+    sender: Optional[str] = None,
+    priority: Optional[str] = None,
+    title: Optional[str] = None,
+) -> str:
+    """
+    Injects a message directly into any Antigravity conversation's inbox.
+    Antigravity picks it up immediately and wakes the agent — exactly like
+    receiving a message from another agent or background task.
+
+    Parameters:
+        conversation_id : The target Antigravity conversation UUID
+                          (get it from list_antigravity_conversations)
+        message         : The text content to inject
+        sender          : Optional sender label (default: 'mcp-bridge/gemini-spark')
+        priority        : 'MESSAGE_PRIORITY_HIGH' or 'MESSAGE_PRIORITY_LOW' (default HIGH)
+        title           : Optional title shown in the Antigravity notification
+    """
+    msg_dir = os.path.join(BRAIN_DIR, conversation_id, ".system_generated", "messages")
+    if not os.path.exists(msg_dir):
+        return f"[Error] Conversation '{conversation_id}' not found or has no message inbox."
+
+    msg_id = str(uuid.uuid4())
+    payload = {
+        "id": msg_id,
+        "recipient": conversation_id,
+        "sender": sender or "mcp-bridge/gemini-spark",
+        "priority": priority or "MESSAGE_PRIORITY_HIGH",
+        "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z",
+        "renderDetails": {
+            "messageTitle": title or "Message from MCP Bridge"
+        },
+        "content": message,
+        "sourceMetadata": {}
+    }
+
+    msg_file = os.path.join(msg_dir, f"{msg_id}.json")
+    try:
+        with open(msg_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+
+        # Mark as unread by ensuring it's NOT in read.json
+        read_file_path = os.path.join(msg_dir, "read.json")
+        read_data = {}
+        if os.path.exists(read_file_path):
+            try:
+                with open(read_file_path, "r", encoding="utf-8") as f:
+                    read_data = json.load(f)
+            except Exception:
+                read_data = {}
+        # Remove from read if somehow already there
+        read_data.pop(msg_id, None)
+        with open(read_file_path, "w", encoding="utf-8") as f:
+            json.dump(read_data, f)
+
+        _log_action("inject_message", {
+            "conversation_id": conversation_id,
+            "message_preview": message[:200],
+            "msg_id": msg_id
+        }, f"Injected message {msg_id}", "mcp-bridge")
+
+        return (
+            f"[Success] Message injected into conversation '{conversation_id}'\n"
+            f"Message ID: {msg_id}\n"
+            f"Antigravity will pick it up on its next active check or immediately if idle."
+        )
+    except Exception as e:
+        return f"[Error] Failed to inject message: {str(e)}"
+
+
 if __name__ == "__main__":
     print("[INFO] Starting Antigravity MCP Server...")
     mcp.run(transport="sse")
