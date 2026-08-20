@@ -148,7 +148,9 @@ def list_directory(directory_path: Optional[str] = None, source: Optional[str] =
 @mcp.tool()
 async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, source: Optional[str] = None) -> str:
     """
-    Launches an autonomous Antigravity coding subagent in the background to fulfill complex goals.
+    Launches an autonomous Antigravity AI agent task using ANTIGRAVITY's credits and models.
+    Routes the task into a real Antigravity conversation via message injection.
+    Antigravity does the heavy AI lifting — Spark just delegates.
     Returns a task_id to check status via get_agent_status.
     """
     task_id = str(uuid.uuid4())[:8]
@@ -162,12 +164,14 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
         "error": None,
         "started_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "source": source or "gemini_spark",
+        "routed_to": "antigravity",
     }
     _log_action("run_agent_task", {"prompt": prompt[:200], "task_id": task_id},
                 f"Task launched with ID: {task_id}", source or "gemini_spark")
 
     async def _run():
         try:
+            # Try official SDK first
             from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
             config = LocalAgentConfig(
                 system_instructions="You are an autonomous pair programmer working in the user's workspace.",
@@ -181,14 +185,72 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
                 tasks[task_id]["output"] = full_text
                 tasks[task_id]["status"] = "completed"
         except ImportError:
-            tasks[task_id]["output"] = f"Agent task received for prompt: '{prompt}'. Direct system hooks ready."
-            tasks[task_id]["status"] = "completed"
+            # SDK not installed — route through inject_message to an active Antigravity conversation
+            # Find the most recently active conversation to delegate to
+            target_conv = None
+            if os.path.exists(BRAIN_DIR):
+                convs = sorted(
+                    [e for e in os.scandir(BRAIN_DIR)
+                     if e.is_dir() and len(e.name) == 36 and e.name.count("-") == 4],
+                    key=lambda e: e.stat().st_mtime, reverse=True
+                )
+                if convs:
+                    target_conv = convs[0].name
+
+            if target_conv:
+                msg_dir = os.path.join(BRAIN_DIR, target_conv, ".system_generated", "messages")
+                os.makedirs(msg_dir, exist_ok=True)
+                msg_id = str(uuid.uuid4())
+                payload = {
+                    "id": msg_id,
+                    "recipient": target_conv,
+                    "sender": f"mcp-bridge/task-{task_id}",
+                    "priority": "MESSAGE_PRIORITY_HIGH",
+                    "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z",
+                    "renderDetails": {"messageTitle": f"Spark Task [{task_id}]: AI work delegated to Antigravity"},
+                    "content": (
+                        f"**Task delegated from Gemini Spark (Task ID: {task_id})**\n\n"
+                        f"Working directory: `{target_dir}`\n\n"
+                        f"**Your task:**\n{prompt}\n\n"
+                        f"Please complete this task using your full capabilities and Antigravity credits. "
+                        f"When done, save a note using save_session_note with tag='task_result' and task_id='{task_id}'."
+                    ),
+                    "sourceMetadata": {}
+                }
+                with open(os.path.join(msg_dir, f"{msg_id}.json"), "w", encoding="utf-8") as f:
+                    json.dump(payload, f, indent=2)
+                # Ensure it's unread
+                read_path = os.path.join(msg_dir, "read.json")
+                read_data = {}
+                if os.path.exists(read_path):
+                    try:
+                        with open(read_path) as f:
+                            read_data = json.load(f)
+                    except Exception:
+                        pass
+                read_data.pop(msg_id, None)
+                with open(read_path, "w") as f:
+                    json.dump(read_data, f)
+
+                tasks[task_id]["output"] = (
+                    f"Task successfully routed to Antigravity conversation '{target_conv}'.\n"
+                    f"Antigravity AI will execute using its own credits and models.\n"
+                    f"Switch to Antigravity IDE to see it working in real time.\n"
+                    f"Results will appear as a session note with tag='task_result'."
+                )
+                tasks[task_id]["status"] = "delegated_to_antigravity"
+                tasks[task_id]["routed_to_conv"] = target_conv
+            else:
+                tasks[task_id]["output"] = "[Info] No active Antigravity conversation found to delegate to. Open Antigravity IDE first."
+                tasks[task_id]["status"] = "failed"
         except Exception as e:
             tasks[task_id]["status"] = "failed"
             tasks[task_id]["error"] = f"{str(e)}\n{traceback.format_exc()}"
 
     asyncio.create_task(_run())
-    return f"Task started successfully. Task ID: {task_id}"
+    return f"Task started successfully. Task ID: {task_id}\nRouting to Antigravity AI — uses Antigravity credits, not Spark credits."
+
+
 
 
 @mcp.tool()
