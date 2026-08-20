@@ -1,5 +1,5 @@
 """
-Antigravity & Local System MCP Server Bridge
+Antigravity & Local System MCP Server Bridge (Upgraded & Hardened)
 Exposes system tools, file operations, terminal execution, Antigravity Agent orchestration,
 and full cross-client history/session logging to Gemini Spark AND Antigravity over MCP.
 """
@@ -18,14 +18,41 @@ from mcp.server.mcpserver import MCPServer
 # Initialize MCP Server
 mcp = MCPServer(name="Antigravity-System-Bridge")
 
-# In-memory background task tracking
+# In-memory background task & process tracking
 tasks: Dict[str, Dict[str, Any]] = {}
+background_processes: Dict[str, Dict[str, Any]] = {}
 
 # Default base directory
 BASE_DIR = os.path.abspath(os.getcwd())
 
 # Persistent history log file — shared between Gemini Spark and Antigravity
 HISTORY_FILE = os.path.join(BASE_DIR, "bridge_history.json")
+
+# Blocked dangerous system command patterns
+BLOCKED_PATTERNS = [
+    "format c:", "rmdir /s /q c:\\", "rmdir /s /q c:/", "del /f /s /q c:\\windows",
+    ":(){ :|:& };:", "dd if=/dev/zero", "mkfs.", "> /dev/sda"
+]
+
+
+# ─── Security & Safety Helpers ────────────────────────────────────────────────
+
+def _is_safe_command(cmd: str) -> tuple[bool, str]:
+    """Check if command contains destructive system commands."""
+    cmd_lower = cmd.lower().strip()
+    for pattern in BLOCKED_PATTERNS:
+        if pattern in cmd_lower:
+            return False, f"Blocked dangerous command pattern: '{pattern}'"
+    return True, ""
+
+
+def _resolve_safe_path(file_path: str, working_dir: Optional[str] = None) -> str:
+    """Resolves path and prevents illegal null-byte injections."""
+    clean_path = file_path.replace("\x00", "")
+    base = os.path.abspath(working_dir if working_dir else BASE_DIR)
+    if os.path.isabs(clean_path):
+        return os.path.abspath(clean_path)
+    return os.path.abspath(os.path.join(base, clean_path))
 
 
 # ─── History Helpers ─────────────────────────────────────────────────────────
@@ -62,36 +89,49 @@ def _log_action(tool: str, inputs: Dict, result: str, source: str = "gemini_spar
     _save_history(history[-500:])
 
 
-# ─── Core Tools ──────────────────────────────────────────────────────────────
+# ─── Core System Tools ───────────────────────────────────────────────────────
 
 @mcp.tool()
-def run_system_command(command: str, working_dir: Optional[str] = None, source: Optional[str] = None) -> str:
+def run_system_command(
+    command: str,
+    working_dir: Optional[str] = None,
+    timeout_seconds: Optional[int] = 180,
+    source: Optional[str] = None
+) -> str:
     """
     Executes a shell/PowerShell command on the local system (e.g. python, npm, git, tests, pip).
-    Returns standard output and standard error. Pass source='antigravity' or 'gemini_spark' to tag history.
+    Includes safety filtering and configurable timeout (default: 180s).
     """
+    is_safe, reason = _is_safe_command(command)
+    if not is_safe:
+        return f"[Security Blocked] {reason}"
+
     target_dir = os.path.abspath(working_dir) if working_dir else BASE_DIR
+    timeout = min(max(timeout_seconds or 180, 5), 600)  # Between 5s and 10 mins
+
     try:
         process = subprocess.run(
             command, shell=True, cwd=target_dir,
-            capture_output=True, text=True, timeout=180,
+            capture_output=True, text=True, timeout=timeout,
         )
         result = f"[Exit Code: {process.returncode}]\n--- STDOUT ---\n{process.stdout}\n--- STDERR ---\n{process.stderr}"
-        _log_action("run_system_command", {"command": command, "working_dir": working_dir},
+        _log_action("run_system_command", {"command": command, "working_dir": target_dir},
                     result, source or "gemini_spark")
         return result
     except subprocess.TimeoutExpired:
-        return "[Error] Command timed out after 180 seconds."
+        return f"[Error] Command timed out after {timeout} seconds."
     except Exception as e:
         return f"[Error] Failed to execute command: {str(e)}"
 
+
+# ─── File Operations (Read, Write, Edit, Append) ─────────────────────────────
 
 @mcp.tool()
 def read_file(file_path: str, source: Optional[str] = None) -> str:
     """
     Reads the content of a file from the local filesystem.
     """
-    abs_path = os.path.abspath(file_path if os.path.isabs(file_path) else os.path.join(BASE_DIR, file_path))
+    abs_path = _resolve_safe_path(file_path)
     if not os.path.exists(abs_path):
         return f"[Error] File not found: {abs_path}"
     try:
@@ -109,12 +149,12 @@ def write_file(file_path: str, content: str, source: Optional[str] = None) -> st
     Creates or overwrites a file on the local filesystem with specified content.
     Automatically creates parent directories if they don't exist.
     """
-    abs_path = os.path.abspath(file_path if os.path.isabs(file_path) else os.path.join(BASE_DIR, file_path))
+    abs_path = _resolve_safe_path(file_path)
     try:
         os.makedirs(os.path.dirname(abs_path), exist_ok=True)
         with open(abs_path, "w", encoding="utf-8") as f:
             f.write(content)
-        result = f"[Success] File written to {abs_path}"
+        result = f"[Success] File written to {abs_path} ({len(content)} bytes)"
         _log_action("write_file", {"file_path": abs_path, "content_length": len(content)},
                     result, source or "gemini_spark")
         return result
@@ -123,17 +163,65 @@ def write_file(file_path: str, content: str, source: Optional[str] = None) -> st
 
 
 @mcp.tool()
+def edit_file(file_path: str, find_text: str, replace_text: str, source: Optional[str] = None) -> str:
+    """
+    Performs a precise surgical search-and-replace edit in an existing file.
+    Avoids having to rewrite the entire file when making targeted code changes.
+    """
+    abs_path = _resolve_safe_path(file_path)
+    if not os.path.exists(abs_path):
+        return f"[Error] File not found: {abs_path}"
+    try:
+        with open(abs_path, "r", encoding="utf-8", errors="replace") as f:
+            content = f.read()
+
+        if find_text not in content:
+            return f"[Error] Target string to replace was not found in {os.path.basename(abs_path)}"
+
+        occurrences = content.count(find_text)
+        new_content = content.replace(find_text, replace_text, 1)
+
+        with open(abs_path, "w", encoding="utf-8") as f:
+            f.write(new_content)
+
+        result = f"[Success] Replaced 1 occurrence of target string in {abs_path} (Remaining matches: {occurrences - 1})"
+        _log_action("edit_file", {"file_path": abs_path, "find_preview": find_text[:80]},
+                    result, source or "gemini_spark")
+        return result
+    except Exception as e:
+        return f"[Error] Failed to edit file: {str(e)}"
+
+
+@mcp.tool()
+def append_file(file_path: str, content: str, source: Optional[str] = None) -> str:
+    """
+    Appends text to the end of an existing file (or creates it if it doesn't exist).
+    """
+    abs_path = _resolve_safe_path(file_path)
+    try:
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+        with open(abs_path, "a", encoding="utf-8") as f:
+            f.write(content)
+        result = f"[Success] Appended {len(content)} bytes to {abs_path}"
+        _log_action("append_file", {"file_path": abs_path, "bytes": len(content)},
+                    result, source or "gemini_spark")
+        return result
+    except Exception as e:
+        return f"[Error] Failed to append to file: {str(e)}"
+
+
+@mcp.tool()
 def list_directory(directory_path: Optional[str] = None, source: Optional[str] = None) -> str:
     """
-    Lists files and directories at the specified path.
+    Lists files and directories at the specified path with file sizes.
     """
-    target_dir = os.path.abspath(directory_path if directory_path else BASE_DIR)
+    target_dir = _resolve_safe_path(directory_path if directory_path else BASE_DIR)
     if not os.path.exists(target_dir):
         return f"[Error] Directory not found: {target_dir}"
     try:
         entries = os.listdir(target_dir)
         output = [f"Directory contents of: {target_dir}"]
-        for entry in entries:
+        for entry in sorted(entries):
             full_path = os.path.join(target_dir, entry)
             is_dir = "[DIR] " if os.path.isdir(full_path) else "[FILE]"
             size = os.path.getsize(full_path) if not os.path.isdir(full_path) else "-"
@@ -145,16 +233,47 @@ def list_directory(directory_path: Optional[str] = None, source: Optional[str] =
         return f"[Error] Failed to list directory: {str(e)}"
 
 
+# ─── Git & Health Utilities ──────────────────────────────────────────────────
+
+@mcp.tool()
+def git_quick_status(repo_dir: Optional[str] = None, source: Optional[str] = None) -> str:
+    """
+    Returns high-level Git status: active branch, changed files, untracked files, and recent commit.
+    """
+    target_dir = _resolve_safe_path(repo_dir if repo_dir else BASE_DIR)
+    try:
+        branch = subprocess.run("git branch --show-current", shell=True, cwd=target_dir,
+                                capture_output=True, text=True).stdout.strip()
+        status = subprocess.run("git status --short", shell=True, cwd=target_dir,
+                                capture_output=True, text=True).stdout.strip()
+        last_commit = subprocess.run("git log -1 --oneline", shell=True, cwd=target_dir,
+                                     capture_output=True, text=True).stdout.strip()
+
+        result = (
+            f"=== Git Status: {os.path.basename(target_dir)} ===\n"
+            f"Branch: {branch or 'Detached/No branch'}\n"
+            f"Last Commit: {last_commit or 'None'}\n"
+            f"Changes:\n{status if status else '  (working tree clean)'}"
+        )
+        _log_action("git_quick_status", {"repo_dir": target_dir}, result, source or "gemini_spark")
+        return result
+    except Exception as e:
+        return f"[Error] Git inspection failed: {str(e)}"
+
+
+# ─── Autonomous Agent Orchestration ──────────────────────────────────────────
+
+BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".gemini", "antigravity", "brain")
+
+
 @mcp.tool()
 async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, source: Optional[str] = None) -> str:
     """
     Launches an autonomous Antigravity AI agent task using ANTIGRAVITY's credits and models.
     Routes the task into a real Antigravity conversation via message injection.
-    Antigravity does the heavy AI lifting — Spark just delegates.
-    Returns a task_id to check status via get_agent_status.
     """
     task_id = str(uuid.uuid4())[:8]
-    target_dir = os.path.abspath(workspace_dir if workspace_dir else BASE_DIR)
+    target_dir = _resolve_safe_path(workspace_dir if workspace_dir else BASE_DIR)
 
     tasks[task_id] = {
         "task_id": task_id,
@@ -171,22 +290,6 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
 
     async def _run():
         try:
-            # Try official SDK first
-            from google.antigravity import Agent, LocalAgentConfig, CapabilitiesConfig
-            config = LocalAgentConfig(
-                system_instructions="You are an autonomous pair programmer working in the user's workspace.",
-                capabilities=CapabilitiesConfig(),
-            )
-            async with Agent(config) as agent:
-                resp = await agent.chat(prompt)
-                full_text = ""
-                async for token in resp:
-                    full_text += token
-                tasks[task_id]["output"] = full_text
-                tasks[task_id]["status"] = "completed"
-        except ImportError:
-            # SDK not installed — route through inject_message to an active Antigravity conversation
-            # Find the most recently active conversation to delegate to
             target_conv = None
             if os.path.exists(BRAIN_DIR):
                 convs = sorted(
@@ -207,19 +310,19 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
                     "sender": f"mcp-bridge/task-{task_id}",
                     "priority": "MESSAGE_PRIORITY_HIGH",
                     "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f") + "Z",
-                    "renderDetails": {"messageTitle": f"Spark Task [{task_id}]: AI work delegated to Antigravity"},
+                    "renderDetails": {"messageTitle": f"Spark Task [{task_id}]: Autonomous Agent Work"},
                     "content": (
                         f"**Task delegated from Gemini Spark (Task ID: {task_id})**\n\n"
                         f"Working directory: `{target_dir}`\n\n"
                         f"**Your task:**\n{prompt}\n\n"
-                        f"Please complete this task using your full capabilities and Antigravity credits. "
-                        f"When done, save a note using save_session_note with tag='task_result' and task_id='{task_id}'."
+                        f"Please execute this task using Antigravity AI capabilities. "
+                        f"When done, log results via save_session_note with tag='task_result' and task_id='{task_id}'."
                     ),
                     "sourceMetadata": {}
                 }
                 with open(os.path.join(msg_dir, f"{msg_id}.json"), "w", encoding="utf-8") as f:
                     json.dump(payload, f, indent=2)
-                # Ensure it's unread
+
                 read_path = os.path.join(msg_dir, "read.json")
                 read_data = {}
                 if os.path.exists(read_path):
@@ -235,13 +338,12 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
                 tasks[task_id]["output"] = (
                     f"Task successfully routed to Antigravity conversation '{target_conv}'.\n"
                     f"Antigravity AI will execute using its own credits and models.\n"
-                    f"Switch to Antigravity IDE to see it working in real time.\n"
                     f"Results will appear as a session note with tag='task_result'."
                 )
                 tasks[task_id]["status"] = "delegated_to_antigravity"
                 tasks[task_id]["routed_to_conv"] = target_conv
             else:
-                tasks[task_id]["output"] = "[Info] No active Antigravity conversation found to delegate to. Open Antigravity IDE first."
+                tasks[task_id]["output"] = "[Info] No active Antigravity conversation found to delegate to."
                 tasks[task_id]["status"] = "failed"
         except Exception as e:
             tasks[task_id]["status"] = "failed"
@@ -249,8 +351,6 @@ async def run_agent_task(prompt: str, workspace_dir: Optional[str] = None, sourc
 
     asyncio.create_task(_run())
     return f"Task started successfully. Task ID: {task_id}\nRouting to Antigravity AI — uses Antigravity credits, not Spark credits."
-
-
 
 
 @mcp.tool()
@@ -275,17 +375,13 @@ def terminate_task(task_id: str) -> str:
     return f"Task ID {task_id} not found."
 
 
-# ─── History & Session Tools ──────────────────────────────────────────────────
+# ─── History & Session Memory Tools ──────────────────────────────────────────
 
 @mcp.tool()
 def get_bridge_history(limit: Optional[int] = 50, tool_filter: Optional[str] = None,
                        source_filter: Optional[str] = None) -> str:
     """
-    Returns the full shared history of all tool calls made through this bridge —
-    from Gemini Spark, Antigravity, or any other connected client.
-    Use limit to control how many recent entries to return (default 50).
-    Use tool_filter to show only a specific tool (e.g. 'write_file').
-    Use source_filter to show only from 'gemini_spark' or 'antigravity'.
+    Returns the full shared history of all tool calls made through this bridge.
     """
     history = _load_history()
 
@@ -295,9 +391,8 @@ def get_bridge_history(limit: Optional[int] = 50, tool_filter: Optional[str] = N
         history = [h for h in history if h.get("source") == source_filter]
 
     recent = history[-(limit or 50):]
-
     if not recent:
-        return "[Info] No history found. Start using tools to build up a record."
+        return "[Info] No history found."
 
     lines = [f"=== Bridge History ({len(recent)} entries) ===\n"]
     for entry in reversed(recent):
@@ -315,8 +410,6 @@ def get_bridge_history(limit: Optional[int] = 50, tool_filter: Optional[str] = N
 def save_session_note(note: str, tag: Optional[str] = None, source: Optional[str] = None) -> str:
     """
     Saves a note or memory to the shared bridge session log.
-    Both Gemini Spark and Antigravity can read and write notes here.
-    Use tag to categorize (e.g. 'decision', 'error', 'milestone', 'idea').
     """
     entry = {
         "id": str(uuid.uuid4())[:8],
@@ -336,7 +429,6 @@ def save_session_note(note: str, tag: Optional[str] = None, source: Optional[str
 def get_session_notes(tag_filter: Optional[str] = None) -> str:
     """
     Retrieves all saved session notes from the shared bridge log.
-    Optionally filter by tag (e.g. 'decision', 'error', 'milestone').
     """
     history = _load_history()
     notes = [h for h in history if h.get("tool") == "save_session_note"]
@@ -358,50 +450,35 @@ def get_session_notes(tag_filter: Optional[str] = None) -> str:
     return "\n".join(lines)
 
 
-# ─── Antigravity Conversation Injection ──────────────────────────────────────
-
-BRAIN_DIR = os.path.join(os.path.expanduser("~"), ".gemini", "antigravity", "brain")
-
+# ─── Conversation Management ─────────────────────────────────────────────────
 
 def _extract_conversation_title(conv_path: str) -> str:
-    """Extract conversation title from transcript CONVERSATION_HISTORY step or first USER_INPUT."""
     import re
     transcript = os.path.join(conv_path, ".system_generated", "logs", "transcript.jsonl")
     if not os.path.exists(transcript):
         return ""
     try:
         with open(transcript, "r", encoding="utf-8", errors="replace") as f:
-            lines = f.readlines()
-
-        # 1. Look for CONVERSATION_HISTORY step which contains "Conversation <id>: <Title>"
-        for line in lines:
-            try:
-                data = json.loads(line)
-                if data.get("type") == "CONVERSATION_HISTORY":
-                    content = data.get("content", "")
-                    match = re.search(r"##\s*Conversation\s+[\w-]+:\s*(.+)", content)
-                    if match:
-                        return match.group(1).strip()
-            except Exception:
-                continue
-
-        # 2. Fallback: use first USER_INPUT content as title
-        for line in lines:
-            try:
-                data = json.loads(line)
-                if data.get("type") == "USER_INPUT":
-                    content = data.get("content", "").strip()
-                    if content:
-                        return content[:60] + ("..." if len(content) > 60 else "")
-            except Exception:
-                continue
+            for line in f:
+                try:
+                    data = json.loads(line)
+                    if data.get("type") == "CONVERSATION_HISTORY":
+                        content = data.get("content", "")
+                        match = re.search(r"##\s*Conversation\s+[\w-]+:\s*(.+)", content)
+                        if match:
+                            return match.group(1).strip()
+                    elif data.get("type") == "USER_INPUT":
+                        content = data.get("content", "").strip()
+                        if content:
+                            return content[:60] + ("..." if len(content) > 60 else "")
+                except Exception:
+                    continue
     except Exception:
         pass
     return ""
 
 
 def _count_conversation_stats(conv_path: str) -> dict:
-    """Count messages, artifacts, and tasks in a conversation."""
     transcript = os.path.join(conv_path, ".system_generated", "logs", "transcript.jsonl")
     stats = {"messages": 0, "user_messages": 0, "tasks": 0, "artifacts": 0}
     if not os.path.exists(transcript):
@@ -411,17 +488,14 @@ def _count_conversation_stats(conv_path: str) -> dict:
             for line in f:
                 try:
                     data = json.loads(line)
-                    t = data.get("type", "")
-                    if t == "USER_INPUT":
+                    if data.get("type") == "USER_INPUT":
                         stats["user_messages"] += 1
                     stats["messages"] += 1
                 except Exception:
                     pass
-        # Count tasks
         tasks_dir = os.path.join(conv_path, ".system_generated", "tasks")
         if os.path.exists(tasks_dir):
             stats["tasks"] = len([f for f in os.listdir(tasks_dir) if f.endswith(".log")])
-        # Count artifacts (non-.system_generated files)
         for root, dirs, files in os.walk(conv_path):
             dirs[:] = [d for d in dirs if d != ".system_generated"]
             stats["artifacts"] += len([f for f in files if not f.endswith(".metadata.json")])
@@ -433,9 +507,8 @@ def _count_conversation_stats(conv_path: str) -> dict:
 @mcp.tool()
 def list_antigravity_conversations() -> str:
     """
-    Lists ALL Antigravity projects/conversations with their real names (titles),
+    Lists ALL Antigravity projects/conversations with their real names,
     conversation IDs, last active time, message count, artifact count, and task count.
-    Exactly what you see in the Antigravity sidebar — use conversation_id with inject_message.
     """
     if not os.path.exists(BRAIN_DIR):
         return "[Error] Antigravity brain directory not found."
@@ -472,16 +545,6 @@ def inject_message(
 ) -> str:
     """
     Injects a message directly into any Antigravity conversation's inbox.
-    Antigravity picks it up immediately and wakes the agent — exactly like
-    receiving a message from another agent or background task.
-
-    Parameters:
-        conversation_id : The target Antigravity conversation UUID
-                          (get it from list_antigravity_conversations)
-        message         : The text content to inject
-        sender          : Optional sender label (default: 'mcp-bridge/gemini-spark')
-        priority        : 'MESSAGE_PRIORITY_HIGH' or 'MESSAGE_PRIORITY_LOW' (default HIGH)
-        title           : Optional title shown in the Antigravity notification
     """
     msg_dir = os.path.join(BRAIN_DIR, conversation_id, ".system_generated", "messages")
     if not os.path.exists(msg_dir):
@@ -506,7 +569,6 @@ def inject_message(
         with open(msg_file, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
 
-        # Mark as unread by ensuring it's NOT in read.json
         read_file_path = os.path.join(msg_dir, "read.json")
         read_data = {}
         if os.path.exists(read_file_path):
@@ -515,7 +577,6 @@ def inject_message(
                     read_data = json.load(f)
             except Exception:
                 read_data = {}
-        # Remove from read if somehow already there
         read_data.pop(msg_id, None)
         with open(read_file_path, "w", encoding="utf-8") as f:
             json.dump(read_data, f)
@@ -536,5 +597,5 @@ def inject_message(
 
 
 if __name__ == "__main__":
-    print("[INFO] Starting Antigravity MCP Server...")
+    print("[INFO] Starting Hardened Antigravity MCP Server...")
     mcp.run(transport="sse")
