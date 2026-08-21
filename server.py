@@ -210,6 +210,134 @@ def append_file(file_path: str, content: str, source: Optional[str] = None) -> s
         return f"[Error] Failed to append to file: {str(e)}"
 
 
+# ─── Composite / Batch Operations (1 Permission Click for Entire Tasks) ───────
+
+@mcp.tool()
+def batch_write_files(files: Dict[str, str], base_dir: Optional[str] = None, source: Optional[str] = None) -> str:
+    """
+    Creates or updates multiple files in a single tool call.
+    Reduces permission prompts from N to 1.
+    Parameters:
+        files: Dictionary of {"relative/or/abs/filepath": "file_content"}
+        base_dir: Optional root directory (defaults to server CWD)
+    """
+    root = _resolve_safe_path(base_dir if base_dir else BASE_DIR)
+    results = []
+    success_count = 0
+
+    for rel_path, content in files.items():
+        abs_path = os.path.abspath(rel_path if os.path.isabs(rel_path) else os.path.join(root, rel_path))
+        try:
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            with open(abs_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            results.append(f"  ✅ Written: {os.path.relpath(abs_path, root)} ({len(content)} bytes)")
+            success_count += 1
+        except Exception as e:
+            results.append(f"  ❌ Failed: {rel_path} - {str(e)}")
+
+    summary = f"[Batch Write Complete] {success_count}/{len(files)} files written successfully.\n" + "\n".join(results)
+    _log_action("batch_write_files", {"count": len(files), "root": root}, summary, source or "gemini_spark")
+    return summary
+
+
+@mcp.tool()
+def run_batch_commands(
+    commands: List[str],
+    working_dir: Optional[str] = None,
+    stop_on_error: Optional[bool] = True,
+    timeout_per_command: Optional[int] = 180,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Executes multiple shell/PowerShell commands sequentially in a single tool call.
+    Reduces permission prompts from N to 1.
+    Parameters:
+        commands: List of shell command strings to execute in order.
+        working_dir: Working directory for all commands.
+        stop_on_error: If True, halts execution if any command returns non-zero exit code.
+        timeout_per_command: Max seconds per command (default: 180s).
+    """
+    target_dir = os.path.abspath(working_dir) if working_dir else BASE_DIR
+    timeout = min(max(timeout_per_command or 180, 5), 600)
+    output_lines = [f"=== Running Batch Commands in: {target_dir} ==="]
+
+    for idx, cmd in enumerate(commands, 1):
+        is_safe, reason = _is_safe_command(cmd)
+        if not is_safe:
+            output_lines.append(f"\n[{idx}/{len(commands)}] Command: {cmd}\n[Security Blocked] {reason}")
+            if stop_on_error:
+                break
+            continue
+
+        output_lines.append(f"\n[{idx}/{len(commands)}] Executing: {cmd}")
+        try:
+            proc = subprocess.run(cmd, shell=True, cwd=target_dir, capture_output=True, text=True, timeout=timeout)
+            out = proc.stdout.strip()
+            err = proc.stderr.strip()
+            status = "SUCCESS" if proc.returncode == 0 else f"FAILED (Exit Code: {proc.returncode})"
+            output_lines.append(f"Status: {status}")
+            if out:
+                output_lines.append(f"STDOUT:\n{out}")
+            if err:
+                output_lines.append(f"STDERR:\n{err}")
+
+            if proc.returncode != 0 and stop_on_error:
+                output_lines.append(f"\n[Halted] Stopped remaining commands due to failure on step {idx}.")
+                break
+        except subprocess.TimeoutExpired:
+            output_lines.append(f"[Error] Command timed out after {timeout} seconds.")
+            if stop_on_error:
+                break
+        except Exception as e:
+            output_lines.append(f"[Error] Execution failed: {str(e)}")
+            if stop_on_error:
+                break
+
+    full_output = "\n".join(output_lines)
+    _log_action("run_batch_commands", {"commands_count": len(commands)}, full_output, source or "gemini_spark")
+    return full_output
+
+
+@mcp.tool()
+def create_full_project(
+    project_name: str,
+    files: Dict[str, str],
+    setup_commands: Optional[List[str]] = None,
+    working_dir: Optional[str] = None,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Creates an entire project directory, writes all code files, and runs initial setup/test commands
+    in a SINGLE tool call with 1 permission confirmation.
+    Parameters:
+        project_name: Name of the project folder to create.
+        files: Dictionary of {"rel/path/filename.ext": "file content"}
+        setup_commands: Optional list of commands to run inside the new project (e.g. ["pip install -r requirements.txt", "python test.py"])
+        working_dir: Parent directory where project folder will be created (defaults to CWD).
+    """
+    parent = _resolve_safe_path(working_dir if working_dir else BASE_DIR)
+    project_root = os.path.join(parent, project_name)
+    os.makedirs(project_root, exist_ok=True)
+
+    report = [f"=== Project Created: {project_name} at {project_root} ==="]
+
+    # 1. Write all files
+    write_res = batch_write_files(files=files, base_dir=project_root, source=source)
+    report.append("\n--- Files Written ---")
+    report.append(write_res)
+
+    # 2. Run setup commands if provided
+    if setup_commands:
+        report.append("\n--- Setup & Verification Commands ---")
+        cmd_res = run_batch_commands(commands=setup_commands, working_dir=project_root, source=source)
+        report.append(cmd_res)
+
+    final_report = "\n".join(report)
+    _log_action("create_full_project", {"project": project_name, "files": len(files)}, final_report, source or "gemini_spark")
+    return final_report
+
+
 @mcp.tool()
 def list_directory(directory_path: Optional[str] = None, source: Optional[str] = None) -> str:
     """
