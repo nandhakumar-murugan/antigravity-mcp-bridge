@@ -18,6 +18,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![ngrok](https://img.shields.io/badge/Tunnel-ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=white)](https://ngrok.com)
 [![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/nandhakumar-murugan/gemini-antigravity-bridge/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI%20Build)](https://github.com/nandhakumar-murugan/gemini-antigravity-bridge/actions)
 [![GitHub Stars](https://img.shields.io/github/stars/nandhakumar-murugan/gemini-antigravity-bridge?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nandhakumar-murugan/gemini-antigravity-bridge/stargazers)
 
 ---
