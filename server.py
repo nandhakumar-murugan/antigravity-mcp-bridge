@@ -724,6 +724,126 @@ def inject_message(
         return f"[Error] Failed to inject message: {str(e)}"
 
 
+# ─── Structured Clear Communication Protocol (Spark ↔ Antigravity) ───────────
+
+@mcp.tool()
+def send_spark_to_antigravity_task(
+    objective: str,
+    context: Optional[str] = None,
+    required_actions: Optional[List[str]] = None,
+    conversation_id: Optional[str] = None,
+    working_dir: Optional[str] = None,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Sends a crystal-clear, structured task brief from Gemini Spark to Antigravity IDE.
+    Automatically generates a formatted markdown instruction envelope with Task ID,
+    objectives, context, step-by-step actions, and reporting instructions.
+    
+    Parameters:
+        objective: Clear 1-2 sentence primary goal.
+        context: Optional background, architectural details, or file paths.
+        required_actions: Optional ordered list of specific steps (e.g. ["write tests", "run pytest", "fix bugs"]).
+        conversation_id: Target Antigravity conversation UUID (if None, targets most recent active).
+        working_dir: Target working folder on disk.
+    """
+    task_id = str(uuid.uuid4())[:8]
+    target_dir = _resolve_safe_path(working_dir if working_dir else BASE_DIR)
+
+    # Find target conversation
+    target_conv = conversation_id
+    if not target_conv and os.path.exists(BRAIN_DIR):
+        convs = sorted(
+            [e for e in os.scandir(BRAIN_DIR)
+             if e.is_dir() and len(e.name) == 36 and e.name.count("-") == 4],
+            key=lambda e: e.stat().st_mtime, reverse=True
+        )
+        if convs:
+            target_conv = convs[0].name
+
+    if not target_conv:
+        return "[Error] No active Antigravity conversation found to receive task."
+
+    # Build structured, clear communication envelope
+    actions_md = ""
+    if required_actions:
+        actions_md = "\n### ⚡ Required Steps:\n" + "\n".join([f"{i}. {act}" for i, act in enumerate(required_actions, 1)])
+
+    context_md = f"\n### 📋 Context & Specifications:\n{context}\n" if context else ""
+
+    formatted_content = f"""# 📡 TASK BRIEF: GEMINI SPARK ➔ ANTIGRAVITY ENGINE
+**Task ID:** `spark-task-{task_id}`
+**Timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Working Directory:** `{target_dir}`
+
+---
+
+### 🎯 Primary Objective:
+{objective}
+{context_md}{actions_md}
+
+---
+
+### 📤 Required Response Back to Spark:
+When you have completed this work:
+1. Call `save_session_note` with tag="spark_response" and note content structured as:
+   - **STATUS**: [SUCCESS / BLOCKED / FAILED]
+   - **FILES CREATED/EDITED**: [List of file paths]
+   - **VERIFICATION & TESTS**: [Test outputs or compiler status]
+   - **EXECUTIVE SUMMARY**: [Brief summary for Spark to report to the user]
+"""
+
+    return inject_message(
+        conversation_id=target_conv,
+        message=formatted_content,
+        sender=f"gemini-spark/task-{task_id}",
+        priority="MESSAGE_PRIORITY_HIGH",
+        title=f"🎯 Spark Task [{task_id}]: {objective[:40]}..."
+    )
+
+
+@mcp.tool()
+def get_antigravity_agent_report(
+    conversation_id: Optional[str] = None,
+    task_id: Optional[str] = None,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Retrieves the structured status report and latest responses from Antigravity.
+    Shows completion notes, modified files, test outputs, and executive summary.
+    """
+    history = _load_history()
+    spark_responses = [
+        h for h in history
+        if h.get("tool") == "save_session_note" and h.get("inputs", {}).get("tag") in ["spark_response", "task_result"]
+    ]
+
+    report = ["=== 📡 Antigravity Execution Reports for Spark ===\n"]
+
+    if spark_responses:
+        report.append("--- Latest Agent Response Notes ---")
+        for resp in reversed(spark_responses[-5:]):
+            report.append(
+                f"[{resp.get('timestamp')}] ID: {resp.get('id')}\n"
+                f"{resp.get('inputs', {}).get('note')}\n"
+                f"{'─'*60}"
+            )
+    else:
+        report.append("[Info] No structured spark_response notes logged yet.")
+
+    # Also check latest session notes
+    recent_notes = [
+        h for h in history
+        if h.get("tool") == "save_session_note" and h.get("inputs", {}).get("tag") not in ["spark_response", "task_result"]
+    ]
+    if recent_notes:
+        report.append("\n--- Other Recent Session Notes ---")
+        for n in reversed(recent_notes[-3:]):
+            report.append(f"[{n.get('timestamp')}] ({n.get('inputs', {}).get('tag')}): {n.get('inputs', {}).get('note')}")
+
+    return "\n".join(report)
+
+
 if __name__ == "__main__":
     print("[INFO] Starting Hardened Antigravity MCP Server...")
     mcp.run(transport="sse")
