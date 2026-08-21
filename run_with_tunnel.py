@@ -25,17 +25,28 @@ PORT = 8000
 HOST = "127.0.0.1"
 
 
-async def root_redirect(request):
-    return RedirectResponse(url="/dashboard")
+async def root_handler(request):
+    # If GET, redirect to visual web dashboard
+    # If POST (MCP client sending to root), forward to Streamable HTTP handler
+    if request.method == "GET":
+        return RedirectResponse(url="/dashboard")
 
 
 def create_app() -> Starlette:
     app_sse = mcp.sse_app()
     app_streamable = mcp.streamable_http_app()
+    streamable_endpoint = app_streamable.routes[0].endpoint
 
+    # Universal routes:
+    # 1. /mcp -> Streamable HTTP (Gemini Spark & Antigravity IDE)
+    # 2. /sse -> GET: SSE stream, POST: Streamable HTTP fallback (handles all clients)
+    # 3. /messages -> SSE message transport
+    # 4. /dashboard & /api/* -> Web Control Center
     combined_routes = [
-        Route("/", root_redirect, methods=["GET"]),
-    ] + DASHBOARD_ROUTES + list(app_streamable.routes) + list(app_sse.routes)
+        Route("/mcp", streamable_endpoint, methods=["POST", "GET", "OPTIONS"]),
+        Route("/sse", streamable_endpoint, methods=["POST"]),
+        Route("/", root_handler, methods=["GET"]),
+    ] + DASHBOARD_ROUTES + list(app_sse.routes)
 
     combined_middleware = [
         Middleware(
@@ -77,7 +88,7 @@ def main(open_browser: bool = False):
         print("[INFO] DUAL-TRANSPORT NGROK MCP TUNNEL IS LIVE!")
         print(f"[DASHBOARD]     : http://127.0.0.1:{PORT}/dashboard")
         print(f"[GEMINI SPARK]  : {public_url}/mcp")
-        print(f"[ANTIGRAVITY]   : http://127.0.0.1:{PORT}/sse")
+        print(f"[ANTIGRAVITY]   : http://127.0.0.1:{PORT}/mcp (or /sse)")
         print("=" * 65)
     except Exception as e:
         print(f"[ERROR] ngrok tunnel error: {e}")
@@ -87,10 +98,10 @@ def main(open_browser: bool = False):
     if open_browser:
         threading.Thread(target=open_browser_delayed, daemon=True).start()
 
-    print(f"\n[2/2] Starting Unified MCP Server & Dashboard on {HOST}:{PORT}...")
+    print(f"\n[2/2] Starting Universal MCP Server & Dashboard on {HOST}:{PORT}...")
     print(f"      - Web Dashboard: http://{HOST}:{PORT}/dashboard")
-    print(f"      - Streamable HTTP: http://{HOST}:{PORT}/mcp")
-    print(f"      - Server-Sent Events (SSE): http://{HOST}:{PORT}/sse")
+    print(f"      - Universal MCP: http://{HOST}:{PORT}/mcp")
+    print(f"      - SSE Stream:   http://{HOST}:{PORT}/sse")
     uvicorn.run(app, host=HOST, port=PORT, log_level="info")
 
 
