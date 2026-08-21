@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <!-- HEADER LOGOS -->
 <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="60" alt="Gemini"/>
@@ -195,12 +195,77 @@ Poll the live progress, output, and errors of a background subagent task.
 
 ---
 
-### 🛑 Tool 7: `terminate_task`
-Safely cancel any running background subagent task.
+### 📦 Tool 8: `create_full_project` (1-Click Composite)
+Creates an entire project directory, writes all code files, and executes initial setup/test commands in a **single tool call with 1 permission confirmation**.
 
 | Param | Type | Required | Description |
 |:---|:---|:---:|:---|
-| `task_id` | string | ✅ | Task ID to cancel |
+| `project_name` | string | ✅ | Folder name of the new project |
+| `files` | object | ✅ | Dictionary of `{"filename": "content"}` |
+| `setup_commands` | array | ❌ | List of shell commands to run after creation |
+
+---
+
+### ⚡ Tool 9: `batch_write_files` (Composite)
+Writes or updates multiple files at once in a single dictionary mapping. Reduces permission prompts from N to 1.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `files` | object | ✅ | `{"src/app.py": "...", "tests/test.py": "..."}` |
+| `base_dir` | string | ❌ | Root directory for files |
+
+---
+
+### 💻 Tool 10: `run_batch_commands` (Composite)
+Executes a sequence of shell/PowerShell commands in order within a single tool call.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `commands` | array | ✅ | `["pip install -r requirements.txt", "pytest"]` |
+| `working_dir` | string | ❌ | Target working directory |
+| `stop_on_error` | boolean | ❌ | Halts sequence if a command fails (default: true) |
+
+---
+
+### ✏️ Tool 11: `edit_file`
+Performs surgical search-and-replace on existing files without rewriting the entire file.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `file_path` | string | ✅ | Path to file to modify |
+| `find_text` | string | ✅ | Exact string to search for |
+| `replace_text` | string | ✅ | Replacement content |
+
+---
+
+### ➕ Tool 12: `append_file`
+Appends content to the end of a file (or creates it if missing).
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `file_path` | string | ✅ | File path |
+| `content` | string | ✅ | Text to append |
+
+---
+
+### 💬 Tool 13: `list_antigravity_conversations`
+Lists all active Antigravity conversations and projects with real sidebar titles, message counts, task counts, and conversation IDs.
+
+---
+
+### 📨 Tool 14: `inject_message`
+Injects instructions directly into any Antigravity conversation inbox, waking the Antigravity Language Server engine.
+
+| Param | Type | Required | Description |
+|:---|:---|:---:|:---|
+| `conversation_id` | string | ✅ | Target Antigravity conversation UUID |
+| `message` | string | ✅ | Message content |
+| `title` | string | ❌ | Message title notification |
+
+---
+
+### 🧠 Tool 15: `get_bridge_history` / `save_session_note`
+Cross-client persistent memory shared between Gemini Spark and Antigravity.
 
 ---
 
