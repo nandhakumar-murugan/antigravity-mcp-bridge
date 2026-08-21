@@ -1,9 +1,9 @@
 @echo off
-title Antigravity MCP Bridge - Control Center
+title Gemini Antigravity Bridge - Control Center
 color 0B
 
 echo ============================================================
-echo   ⚡ ANTIGRAVITY MCP BRIDGE - WINDOWS CONTROL CENTER
+echo   ⚡ GEMINI ANTIGRAVITY BRIDGE - WINDOWS CONTROL CENTER
 echo   Connecting Cloud AI (Gemini Spark) to Local Machine
 echo ============================================================
 echo.

@@ -7,9 +7,9 @@
 &nbsp;&nbsp;&nbsp;
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/115px-Python-logo-notext.svg.png" width="50" alt="Python"/>
 
-# ⚡ Antigravity MCP Bridge
+# ⚡ Gemini Antigravity Bridge
 
-### *The Open-Source Bridge Connecting Google Cloud AI to Your Local Machine via the Model Context Protocol*
+### *The Open-Source Bridge Connecting Google Gemini & Cloud AI to Your Local Machine via the Model Context Protocol*
 
 <!-- BADGES -->
 [![Model Context Protocol](https://img.shields.io/badge/Model%20Context%20Protocol-MCP%202.0-4285F4?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQxIDAtOC0zLjU5LTgtOHMzLjU5LTggOC04IDggMy41OSA4IDgtMy41OSA4LTggOHoiLz48L3N2Zz4=&logoColor=white)](https://modelcontextprotocol.io)
@@ -18,7 +18,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![ngrok](https://img.shields.io/badge/Tunnel-ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=white)](https://ngrok.com)
 [![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/nandhakumar-murugan/antigravity-mcp-bridge?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nandhakumar-murugan/antigravity-mcp-bridge/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/nandhakumar-murugan/gemini-antigravity-bridge?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nandhakumar-murugan/gemini-antigravity-bridge/stargazers)
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## 🧩 What Is This Project?
 
-**Antigravity MCP Bridge** breaks the barrier between Cloud AI and your local machine. It runs a local **Model Context Protocol (MCP)** server that exposes your entire operating system — terminal, files, compilers, and Git — to any MCP-compatible AI orchestrator over a secure HTTPS tunnel.
+**Gemini Antigravity Bridge** breaks the barrier between Cloud AI and your local machine. It runs a local **Model Context Protocol (MCP)** server that exposes your entire operating system — terminal, files, compilers, and Git — to any MCP-compatible AI orchestrator over a secure HTTPS tunnel.
 
 Connect it to **Google Gemini Spark** and you get a fully autonomous AI Software Engineer that can plan, code, test, fix, and ship software directly on your disk.
 

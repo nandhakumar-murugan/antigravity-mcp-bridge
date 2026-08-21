@@ -92,7 +92,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Antigravity MCP Bridge | Live Control Center</title>
+  <title>⚡ Gemini Antigravity Bridge | Live Control Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -379,7 +379,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <div class="brand">
       <div class="brand-icon">⚡</div>
       <div>
-        <div class="brand-title">Antigravity MCP Bridge</div>
+        <div class="brand-title">Gemini Antigravity Bridge</div>
         <div class="brand-subtitle">Live Developer Control Center</div>
       </div>
     </div>

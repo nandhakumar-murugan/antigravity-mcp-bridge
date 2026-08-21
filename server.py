@@ -1,5 +1,5 @@
 """
-Antigravity & Local System MCP Server Bridge (Upgraded & Hardened)
+Gemini Antigravity Bridge - MCP Server
 Exposes system tools, file operations, terminal execution, Antigravity Agent orchestration,
 and full cross-client history/session logging to Gemini Spark AND Antigravity over MCP.
 """
@@ -16,7 +16,7 @@ from typing import Dict, Any, Optional, List
 from mcp.server.mcpserver import MCPServer
 
 # Initialize MCP Server
-mcp = MCPServer(name="Antigravity-System-Bridge")
+mcp = MCPServer(name="Gemini-Antigravity-Bridge")
 
 # In-memory background task & process tracking
 tasks: Dict[str, Dict[str, Any]] = {}
