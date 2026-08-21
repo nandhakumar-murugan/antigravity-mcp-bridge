@@ -578,6 +578,61 @@ def get_session_notes(tag_filter: Optional[str] = None) -> str:
     return "\n".join(lines)
 
 
+# ─── Antigravity ➔ Gemini Sync & Research Tools ──────────────────────────────
+
+@mcp.tool()
+def sync_project_to_gemini(
+    project_name: str,
+    summary: str,
+    tech_stack: Optional[List[str]] = None,
+    key_files: Optional[List[str]] = None,
+    next_milestone: Optional[str] = None,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Called by Antigravity to push a complete project status report and architectural summary
+    into the shared bridge memory. Gemini Spark can read this anytime to understand your exact project state.
+    """
+    dossier = {
+        "project_name": project_name,
+        "summary": summary,
+        "tech_stack": tech_stack or [],
+        "key_files": key_files or [],
+        "next_milestone": next_milestone or "In Progress",
+        "synced_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    note_content = (
+        f"📁 PROJECT SYNC: **{project_name}**\n"
+        f"• Summary: {summary}\n"
+        f"• Tech Stack: {', '.join(tech_stack) if tech_stack else 'N/A'}\n"
+        f"• Key Files: {', '.join(key_files) if key_files else 'N/A'}\n"
+        f"• Next Milestone: {next_milestone or 'Active Development'}"
+    )
+    save_session_note(note=note_content, tag="project_sync", source=source or "antigravity")
+    return f"[Success] Project '{project_name}' synced to Gemini Spark bridge memory."
+
+
+@mcp.tool()
+def request_gemini_brainstorm(
+    topic: str,
+    query: str,
+    context: Optional[str] = None,
+    source: Optional[str] = None,
+) -> str:
+    """
+    Called by Antigravity to post a question or research request for Gemini Spark
+    (e.g. asking Spark to review architecture, search web docs, or check Google Workspace data).
+    """
+    note_content = (
+        f"❓ BRAINSTORM REQUEST FOR GEMINI SPARK: **{topic}**\n"
+        f"• Question/Goal: {query}\n"
+        f"• Local Context: {context if context else 'None provided'}"
+    )
+    save_session_note(note=note_content, tag="gemini_request", source=source or "antigravity")
+    return f"[Success] Brainstorm request '{topic}' logged for Gemini Spark. Spark will review on next sync."
+
+
+
 # ─── Conversation Management ─────────────────────────────────────────────────
 
 def _extract_conversation_title(conv_path: str) -> str:
